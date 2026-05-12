@@ -14,7 +14,7 @@ backend/app/ai_models/
 temp_uploads/
 react-frontend/
 react-frontend-deleted/
-backend/logs/
+backend/logs/*.log
 backend/scratch/
 scratch/
 .idea/
