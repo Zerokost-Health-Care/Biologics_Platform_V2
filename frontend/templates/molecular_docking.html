@@ -1,244 +1,398 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Molecular Docking | Biologics Discovery</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Molecular Docking | GenQuantis Discovery</title>
+    <!-- Use absolute paths for all assets -->
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
-    <script src="/static/js/main.js"></script>
-    <script src="/static/js/chatbot.js" defer></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #020617; color: #f8fafc; }
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
-        .mol-container { height: 400px; width: 100%; position: relative; border-radius: 12px; overflow: hidden; }
-        .btn-primary { background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%); transition: all 0.3s transform; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4); }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            background: #f8fafc;
+        }
+
+        .badge-running {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .badge-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .docking-main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 991px) {
+            .docking-main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        #info-trigger:hover {
+            background: #10b981;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
     </style>
-</head> 
-<body class="min-h-screen">
+</head>
+
+<body>
     <div class="app-container">
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-link" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Molecular Docking</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● AUTODOCK VINA ENGINE ACTIVE</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html" class="active">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-            </ul>
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item active"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
         </aside>
 
         <main class="main-content">
-            <header class="top-bar glass p-6 rounded-2xl mb-8 flex justify-between items-center">
-                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-                    <i class="fas fa-atom mr-2"></i>Structural Docking
-                </h1>
-                <div class="flex items-center gap-4">
-                    <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">GPU_CLUSTER: ACTIVE</span>
-                    <a href="/dashboard" class="text-sm font-medium hover:text-blue-400 transition">Dashboard</a>
+            <!-- Hero Header Section -->
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-link" style="font-size: 2.5rem; color: #10b981;"></i>
                 </div>
-            </header>
+                <div>
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Molecular Docking</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Simulate ligand-receptor
+                        interactions to predict binding affinity.</p>
+                </div>
+            </section>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Sidebar: Configuration -->
-        <div class="lg:col-span-1 space-y-6">
-            <section class="glass p-6 rounded-2xl">
-                <h2 class="text-xl font-semibold mb-4 text-blue-400">Docking Configuration</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Target Receptor (PDB ID)</label>
-                        <input type="text" id="pdbId" value="6W01" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white">
+            <div class="docking-main-grid">
+                <!-- Control Panel -->
+                <div class="premium-card"
+                    style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                    <h3
+                        style="margin-bottom: 1.5rem; color: #115e59; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                        Parameters</h3>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label
+                            style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; text-transform: uppercase;">ACTIVE TARGET (OR PDB ID)</label>
+                        <input type="text" id="pdb-id" placeholder="e.g. EGFR, P53, or 1IEP"
+                            style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid #e2eef1; font-weight: 600; color: #115e59; font-family: inherit;">
                     </div>
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Ligand SMILES</label>
-                        <textarea id="smiles" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white font-mono text-sm">CC(=O)Oc1ccccc1C(=O)O</textarea>
+
+                    <div style="margin-bottom: 2rem;">
+                        <label
+                            style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; text-transform: uppercase;">Ligand
+                            SMILES</label>
+                        <input type="text" id="ligand-smiles" placeholder="CC(=O)OC1=CC=CC=C1C(=O)O"
+                            style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid #e2eef1; font-family: inherit;">
                     </div>
-                    <button onclick="startDocking()" id="runBtn" class="w-full btn-primary py-3 rounded-lg font-semibold flex justify-center items-center">
-                        <i class="fas fa-play mr-2"></i>Compute Affinities
+
+                    <button id="dock-btn" class="btn-launch"
+                        style="width: 100%; justify-content: center; padding: 1rem; font-weight: 700;"
+                        onclick="runDocking()">
+                        <i class="fas fa-play"></i> START SIMULATION
                     </button>
-                </div>
-            </section>
 
-            <section class="glass p-6 rounded-2xl" id="statusBox" style="display: none;">
-                <h3 class="text-lg font-semibold mb-2 flex items-center">
-                    <span class="animate-pulse mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
-                    Job Progress
-                </h3>
-                <div id="progressLog" class="text-xs text-slate-400 font-mono space-y-2 h-40 overflow-y-auto">
-                    <!-- Logs will appear here -->
-                </div>
-            </section>
-        </div>
-
-        <!-- Main View: 3D Visualization -->
-        <div class="lg:col-span-2 space-y-6">
-            <div class="glass p-6 rounded-2xl h-full flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Interaction Visualization</h2>
-                    <div class="flex gap-2">
-                        <button onclick="changeStyle('stick')" class="px-3 py-1 text-xs bg-slate-800 rounded">Stick</button>
-                        <button onclick="changeStyle('cartoon')" class="px-3 py-1 text-xs bg-slate-800 rounded">Polymer</button>
-                        <button onclick="changeStyle('sphere')" class="px-3 py-1 text-xs bg-slate-800 rounded">Sphere</button>
+                    <div id="docking-log"
+                        style="margin-top: 1.5rem; background: #0f172a; color: #4ade80; font-family: 'Fira Code', monospace; padding: 1rem; border-radius: 10px; font-size: 0.75rem; height: 200px; overflow-y: auto; display: none; line-height: 1.5;">
                     </div>
                 </div>
-                
-                <div id="container-01" class="mol-container border-2 border-slate-800"></div>
 
-                <div id="resultsPanel" class="mt-6 space-y-4" style="display: none;">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-center">
-                            <div class="text-2xl font-bold text-blue-400" id="deltaG">-9.2</div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Delta G (kcal/mol)</div>
-                        </div>
-                        <div class="bg-emerald-900/20 border border-emerald-500/30 p-4 rounded-xl text-center">
-                            <div class="text-2xl font-bold text-emerald-400" id="poseCount">9</div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Optimal Poses</div>
-                        </div>
-                        <div class="bg-indigo-900/20 border border-indigo-500/30 p-4 rounded-xl text-center">
-                            <div class="text-2xl font-bold text-indigo-400" id="rmsd">0.42</div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">RMSD LB</div>
-                        </div>
-                        <div class="bg-purple-900/20 border border-purple-500/30 p-4 rounded-xl text-center">
-                            <div class="text-2xl font-bold text-purple-400" id="efficiency">0.34</div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Ligand Eff.</div>
-                        </div>
+                <!-- 3D Visualization -->
+                <div class="premium-card"
+                    style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; flex-direction: column; min-height: 600px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3
+                            style="color: #115e59; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                            3D Interaction Map</h3>
+                        <div id="dock-status-badge" class="badge" style="display: none;">INITIALIZING</div>
                     </div>
-                    
-                    <div class="flex justify-end">
-                        <button onclick="window.goToADMET(document.getElementById('smiles').value)" 
-                                class="px-6 py-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-lg text-sm font-semibold hover:bg-emerald-500 hover:text-white transition flex items-center gap-2">
-                            Proceed to ADMET Prediction <i class="fas fa-arrow-right"></i>
-                        </button>
+                    <div id="dock-viewer"
+                        style="flex: 1; background: #f8fafc; border-radius: 15px; overflow: hidden; border: 1px solid #e2eef1; position: relative;">
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-
-    <script>
-        let viewer = null;
-        const HOST = 'http://127.0.0.1:8000';
-        const WS_HOST = '127.0.0.1:8000';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            let element = document.querySelector('#container-01');
-            // Fix: 3Dmol doesn't always support 'transparent' correctly in some versions/browsers
-            viewer = $3Dmol.createViewer(element, { backgroundColor: '#020617' });
-            loadStructure('6W01');
-        });
-
-        async function loadStructure(pdbId) {
-            if (!viewer) return;
-            viewer.clear();
-            const response = await fetch(`https://files.rcsb.org/download/${pdbId}.pdb`);
-            const data = await response.text();
-            viewer.addModel(data, "pdb");
-            viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
-            viewer.zoomTo();
-            viewer.render();
-        }
-
-        async function startDocking() {
-            const pdbId = document.getElementById('pdbId').value;
-            const smiles = document.getElementById('smiles').value;
-            const runBtn = document.getElementById('runBtn');
-            const log = document.getElementById('progressLog');
-            
-            runBtn.disabled = true;
-            runBtn.innerHTML = `<i class="fas fa-spinner animate-spin mr-2"></i>Calculating...`;
-            document.getElementById('statusBox').style.display = 'block';
-            log.innerHTML = `<div class="text-blue-400">> Initiating job on GPU cluster...</div>`;
-
-            try {
-                const response = await fetch(`${HOST}/api/docking/run?target_id=${pdbId}&smiles=${encodeURIComponent(smiles)}`, {
-                    method: 'POST'
-                });
-                const job = await response.json();
-                console.log("Job started:", job);
-                const jobId = job.id || job._id;
-                
-                if (!jobId) throw new Error("Server did not return a valid Job ID.");
-                
-                // Use WS_HOST instead of window.location.host for reliability in local file environments
-                const socket = new WebSocket(`ws://${WS_HOST}/ws/${jobId}`);
-                
-                socket.onmessage = (event) => {
-                    const div = document.createElement('div');
-                    div.className = 'border-l-2 border-blue-500 pl-2';
-                    div.innerText = event.data;
-                    log.appendChild(div);
-                    log.scrollTop = log.scrollHeight;
-                    
-                    if (event.data.includes('✅')) {
-                        updateResults(jobId);
-                    }
-                };
-            } catch (err) {
-                console.error("Docking Error:", err);
-                log.innerHTML += `<div class="text-red-400">> Error: ${err.message}</div>`;
-                runBtn.disabled = false;
-                runBtn.innerHTML = `<i class="fas fa-play mr-2"></i>Compute Affinities`;
-            }
-        }
-
-        async function updateResults(jobId) {
-            try {
-                const response = await fetch(`${HOST}/api/docking/${jobId}`);
-                const job = await response.json();
-                
-                document.getElementById('resultsPanel').style.display = 'block';
-                document.getElementById('deltaG').innerText = job.results.binding_energy ? job.results.binding_energy.toFixed(2) : '-';
-                document.getElementById('poseCount').innerText = job.results.pose_count || 9;
-                document.getElementById('rmsd').innerText = job.results.rmsd_lb || '0.42';
-                document.getElementById('efficiency').innerText = job.results.efficiency || '0.34';
-                
-                // Fetch and Render Docked Ligand
-                const structRes = await fetch(`${HOST}/api/docking/${jobId}/structure`);
-                if (structRes.ok) {
-                    const ligandData = await structRes.text();
-                    
-                    // We don't clear the viewer here because we want to see ligand INSIDE protein
-                    // But we might want to clear previous ligands if user runs multiple times
-                    // viewer.clear(); // If we clear, we must re-add protein
-                    
-                    // Best way: Load protein separately once, then add ligand.
-                    const ligandModel = viewer.addModel(ligandData, "pdb"); // pdbqt is mostly compatible with pdb for 3Dmol
-                    viewer.setStyle({model: ligandModel.getID()}, {stick: {radius: 0.2, colorscheme: 'cyanCarbon'}});
-                    
-                    // Highlight the pocket area
-                    viewer.zoomTo({model: ligandModel.getID()});
-                    viewer.render();
-                }
-
-                document.getElementById('runBtn').disabled = false;
-                document.getElementById('runBtn').innerHTML = `<i class="fas fa-play mr-2"></i>Compute Affinities`;
-            } catch (err) {
-                console.error("Results update failed:", err);
-            }
-        }
-
-        function changeStyle(style) {
-            if (!viewer || viewer.models.length === 0) return;
-            // First model (0) is always the protein
-            viewer.setStyle({model: 0}, { [style]: { color: 'spectrum' } });
-            
-            // If ligand is present (model 1), keep it as highlighted sticks
-            if (viewer.models.length > 1) {
-                viewer.setStyle({model: 1}, {stick: {radius: 0.25, colorscheme: 'cyanCarbon'}});
-            }
-            viewer.render();
-        }
-    </script>
         </main>
     </div>
+
+    <!-- Floating Info Icon -->
+    <button id="info-trigger"
+        style="position: fixed; right: 25px; top: 100px; background: #115e59; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none;">
+        <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <!-- Info Overlay -->
+    <div id="info-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.98); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(15px); animation: fadeIn 0.3s ease; padding: 30px;">
+        <div
+            style="position: relative; max-width: 90%; max-height: 90vh; width: fit-content; background: #020617; padding: 8px; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); transform: scale(0.9); animation: scaleUp 0.3s ease forwards; display: flex; flex-direction: column; align-items: center;">
+            <button id="info-close-top"
+                style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 10; border: 2px solid #020617;">&times;</button>
+
+            <div
+                style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px 10px 0 10px;">
+                <img src="/static/images/Molecular Docking.png"
+                    style="max-width: 100%; max-height: 70vh; height: auto; width: auto; object-fit: contain; display: block; border-radius: 4px;">
+            </div>
+
+            <div style="padding: 1.5rem 0; width: 100%; display: flex; justify-content: center;">
+                <button id="info-minimize-btn"
+                    style="background: #115e59; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 40px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <i class="fas fa-compress-alt"></i> MINIMIZE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script>
+        let viewer = null;
+        let currentSocket = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // User Info
+            const username = localStorage.getItem('user_fullname') || localStorage.getItem('full_name') || 'Researcher';
+            const userDisplay = document.getElementById('nav-username');
+            if (userDisplay) userDisplay.innerText = username;
+
+            // URL Parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const smiles = urlParams.get('smiles');
+            const target = urlParams.get('target');
+            if (smiles) document.getElementById('ligand-smiles').value = smiles;
+            if (target) document.getElementById('pdb-id').value = target;
+
+            // 3D Viewer Init
+            setTimeout(() => {
+                const element = document.getElementById('dock-viewer');
+                if (element && typeof $3Dmol !== 'undefined') {
+                    viewer = $3Dmol.createViewer(element, { backgroundColor: '#f8fafc' });
+                    viewer.zoomTo();
+                    viewer.render();
+                }
+            }, 500);
+
+            // Info Overlay Logic
+            const trigger = document.getElementById('info-trigger');
+            const overlay = document.getElementById('info-overlay');
+            const closeTop = document.getElementById('info-close-top');
+            const minimizeBtn = document.getElementById('info-minimize-btn');
+
+            if (trigger) {
+                trigger.addEventListener('click', () => {
+                    overlay.style.display = 'flex';
+                });
+            }
+
+            const hideOverlay = () => {
+                overlay.style.display = 'none';
+            };
+
+            if (closeTop) closeTop.addEventListener('click', hideOverlay);
+            if (minimizeBtn) minimizeBtn.addEventListener('click', hideOverlay);
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) hideOverlay();
+            });
+        });
+
+        async function runDocking() {
+            const pdbId = document.getElementById('pdb-id').value.trim();
+            const smiles = document.getElementById('ligand-smiles').value.trim();
+            const btn = document.getElementById('dock-btn');
+            const logArea = document.getElementById('docking-log');
+            const badge = document.getElementById('dock-status-badge');
+
+            if (!pdbId || !smiles) {
+                alert("Please provide both a PDB ID and a SMILES string.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
+            logArea.style.display = 'block';
+            logArea.innerHTML = '<div>[SYSTEM] Initializing compute pipeline...</div>';
+
+            badge.style.display = 'block';
+            badge.className = 'badge badge-running';
+            badge.textContent = 'SIMULATING';
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`/api/docking/run?target_id=${encodeURIComponent(pdbId)}&smiles=${encodeURIComponent(smiles)}`, {
+                    method: 'POST',
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.detail || "Request failed.");
+                }
+
+                const job = await res.json();
+                const jobId = job.id || job._id;
+                connectWS(jobId);
+
+            } catch (err) {
+                logArea.innerHTML += `<div style="color: #ef4444; margin-top: 0.5rem;">[ERROR] ${err.message}</div>`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> START SIMULATION';
+                badge.className = 'badge badge-danger';
+                badge.textContent = 'FAILED';
+            }
+        }
+
+        function connectWS(jobId) {
+            if (currentSocket) currentSocket.close();
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/${jobId}`;
+            currentSocket = new WebSocket(wsUrl);
+
+            const logArea = document.getElementById('docking-log');
+            const btn = document.getElementById('dock-btn');
+            const badge = document.getElementById('dock-status-badge');
+
+            currentSocket.onmessage = (event) => {
+                const div = document.createElement('div');
+                div.textContent = `> ${event.data}`;
+                logArea.appendChild(div);
+                logArea.scrollTop = logArea.scrollHeight;
+
+                if (event.data.includes("Complete") || event.data.includes("Energy")) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> COMPLETE';
+                    badge.className = 'badge badge-success';
+                    badge.textContent = 'COMPLETED';
+                    loadDockedStructure(jobId);
+                }
+            };
+        }
+
+        async function loadDockedStructure(jobId) {
+            try {
+                const res = await fetch(`/api/docking/${jobId}/structure`);
+                const pdbqt = await res.text();
+                if (viewer) {
+                    viewer.clear();
+                    viewer.addModel(pdbqt, "pdb");
+                    viewer.setStyle({}, { stick: { color: 'spectrum' } });
+                    viewer.zoomTo();
+                    viewer.render();
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
 </body>
+
 </html>

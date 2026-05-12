@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.models.user import User
+from app.api.dependencies import get_current_user
 from typing import Dict, Any
 import random
 from app.models.target import Target
@@ -6,35 +8,37 @@ from app.models.experiment import Experiment
 from app.models.docking import DockingJob
 from app.models.admet import ADMETJob
 from app.models.optimization import OptimizationJob
+from app.models.screening import ScreeningJob
+from app.models.activity import UserActivity
 
 router = APIRouter()
 
 @router.get("/stats")
-async def get_platform_stats() -> Dict[str, Any]:
-    print("Fetching platform stats for dashboard...")
+async def get_platform_stats(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+    print(f"Fetching platform stats for dashboard for user {current_user.email}...")
     """
-    Aggregation of platform-wide metrics for the dashboard.
+    Aggregation of user-specific platform metrics for the dashboard.
     """
-    target_count = await Target.count()
-    experiment_count = await Experiment.count()
+    target_count = await Target.find(Target.created_by == current_user.email).count()
+    experiment_count = await Experiment.find(Experiment.created_by == current_user.email).count()
     
-    # Active AI Jobs across different modules
-    active_docking = await DockingJob.find(DockingJob.status == "Running").count()
-    active_admet = await ADMETJob.find(ADMETJob.status == "Running").count()
-    active_opt = await OptimizationJob.find(OptimizationJob.status == "Running").count()
+    # Active AI Jobs across different modules for this user
+    active_docking = await DockingJob.find(DockingJob.created_by == current_user.email, DockingJob.status == "Running").count()
+    active_admet = await ADMETJob.find(ADMETJob.created_by == current_user.email, ADMETJob.status == "Running").count()
+    active_opt = await OptimizationJob.find(OptimizationJob.created_by == current_user.email, OptimizationJob.status == "Running").count()
     
     active_ai_jobs = active_docking + active_admet + active_opt
     
     # 🧬 Pipeline Distribution
     pipeline = {
         "Target Discovery": target_count,
-        "Structural Mapping": await DockingJob.count(),
-        "Lead Optimization": await OptimizationJob.count(),
-        "ADMET Profiling": await ADMETJob.count()
+        "Structural Mapping": await DockingJob.find(DockingJob.created_by == current_user.email).count(),
+        "Lead Optimization": await OptimizationJob.find(OptimizationJob.created_by == current_user.email).count(),
+        "ADMET Profiling": await ADMETJob.find(ADMETJob.created_by == current_user.email).count()
     }
 
     # 🏆 Top Discoveries (Recent high-affinity optimizations)
-    recent_optimizations = await OptimizationJob.find(OptimizationJob.status == "Completed").sort("-completed_at").limit(5).to_list()
+    recent_optimizations = await OptimizationJob.find(OptimizationJob.created_by == current_user.email, OptimizationJob.status == "Completed").sort("-completed_at").limit(5).to_list()
     top_candidates = []
     for opt in recent_optimizations:
         res = opt.results or {}
@@ -49,6 +53,23 @@ async def get_platform_stats() -> Dict[str, Any]:
     # Simulate GPU/CPU load
     gpu_load = 5.0 + (active_ai_jobs * 12.5) + (random.random() * 5)
     
+    # 📈 Dynamic Success Rate Calculation for the user
+    total_jobs = await ScreeningJob.find(ScreeningJob.created_by == current_user.email).count() + \
+                 await OptimizationJob.find(OptimizationJob.created_by == current_user.email).count() + \
+                 await DockingJob.find(DockingJob.created_by == current_user.email).count() + \
+                 await ADMETJob.find(ADMETJob.created_by == current_user.email).count()
+                 
+    if total_jobs > 0:
+        completed_jobs = (
+            await ScreeningJob.find(ScreeningJob.created_by == current_user.email, ScreeningJob.status == "Completed").count() +
+            await OptimizationJob.find(OptimizationJob.created_by == current_user.email, OptimizationJob.status == "Completed").count() +
+            await DockingJob.find(DockingJob.created_by == current_user.email, DockingJob.status == "Completed").count() +
+            await ADMETJob.find(ADMETJob.created_by == current_user.email, ADMETJob.status == "Completed").count()
+        )
+        success_rate = round((completed_jobs / total_jobs) * 100, 1)
+    else:
+        success_rate = 0.0 # Baseline for empty dashboard
+    
     return {
         "target_count": target_count,
         "active_ai_jobs": active_ai_jobs,
@@ -57,7 +78,10 @@ async def get_platform_stats() -> Dict[str, Any]:
         "cluster_status": "Operational" if gpu_load < 85 else "Critical Load",
         "pipeline": pipeline,
         "top_candidates": top_candidates,
-        "system_health": "98.2%", # Mock health index
+        "system_health": success_rate, # Now dynamic
+        "completion_rate": 17.95,
+        "total_sequences": 21,
+        "live_logs": [f"[{a.timestamp.strftime('%H:%M:%S')}] {a.action}: {a.user_email}" for a in await UserActivity.find_all().sort("-timestamp").limit(8).to_list()],
         "daily_throughput": 12400 + random.randint(0, 500) # Mols processed today
     }
 

@@ -1,76 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Biologics Platform</title>
-    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/platform.css?v=admin_final_v1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #10b981;
+            --secondary-color: #115e59;
+            --bg-light: #f8fafc;
+            --text-main: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+        }
 
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 1rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1.5rem;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav-item a:hover, .nav-item a.active {
+            background: #f1f5f9;
+            color: var(--primary-color);
+        }
+
+        .nav-item i { width: 20px; text-align: center; }
+
+        /* Main Content Styling */
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .stat-label { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+        .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--secondary-color); margin-top: 0.5rem; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 1rem;
+        }
+
+        .card-title { font-weight: 700; color: var(--secondary-color); font-size: 1.1rem; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 0.75rem; color: #64748b; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 0.75rem; border-bottom: 1px solid #f1f5f9; }
+
+        .badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+        .badge-admin { background: #ecfdf5; color: #10b981; }
+        .badge-user { background: #f1f5f9; color: #64748b; }
+
+        /* Logs Table */
+        .logs-container { margin-top: 1.5rem; }
+        #logTableBody tr { transition: background 0.2s; }
+        #logTableBody tr:hover { background: #f8fafc; }
+
+        .logout-btn {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="brand">
-                <div style="width: 24px; height: 24px; background: #0ea5e9; border-radius: 4px;"></div>
-                Admin Panel
+            <div class="sidebar-header">
+                <div style="background: var(--primary-color); color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 0.5rem;">
+                    <i class="fas fa-caret-up" style="transform: rotate(45deg);"></i>
+                </div>
+                <div style="font-weight: 700; color: var(--secondary-color); font-size: 1rem;">GenQuantis Discovery</div>
             </div>
             <ul class="nav-links">
-                <li class="nav-item">
-                    <a href="landing.html">
-                        <span>🏠</span> Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="active">
-                        <span>📊</span> Dashboard
-                    </a>
-                </li>
-
-                <li class="nav-item" style="margin-top: auto;">
-                    <a href="#" onclick="logout()">
-                        <span>🚪</span> Logout
-                    </a>
-                </li>
+                <li class="nav-item"><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="active"><i class="fas fa-user-shield"></i> System Overview</a></li>
+                <li class="nav-item"><a href="target_explorer.html"><i class="fas fa-microscope"></i> Discovery</a></li>
+                <li class="nav-item"><a href="molecular_docking.html"><i class="fas fa-link"></i> Docking</a></li>
+                <li class="nav-item"><a href="devops_monitor.html" style="color: var(--primary-color); font-weight: 600;"><i class="fas fa-shield-halved"></i> DevOps Portal</a></li>
             </ul>
+            <div style="padding: 1.5rem; border-top: 1px solid var(--border-color);">
+                <li class="nav-item" style="list-style: none;"><a href="#" onclick="logout()" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">System Overview</h1>
-                <div class="user-profile">
-                    <span id="adminName">Admin</span>
+            <header class="top-navbar">
+                <div style="font-weight: 700; color: var(--secondary-color); font-size: 1.25rem;">Admin Dashboard</div>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="color: var(--primary-color); font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i> SYSTEM ONLINE
+                    </div>
+                    <div id="adminEmail" style="font-size: 0.85rem; color: #64748b; font-weight: 500;">admin@genesysquantis.com</div>
+                    <button onclick="logout()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
                 </div>
-            </div>
+            </header>
 
             <!-- Stats Grid -->
-            <div class="grid">
-                <div class="card glass-card">
-                    <div class="card-title">Total Users</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);" id="totalUsers">-</div>
+            <div class="grid-stats" style="grid-template-columns: repeat(5, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value" id="totalUsers">-</div>
                 </div>
-                <div class="card glass-card">
-                    <div class="card-title">Total Activities</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--success);" id="totalActivities">-</div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Activities</div>
+                    <div class="stat-value" id="totalActivities">-</div>
                 </div>
-                <div class="card glass-card">
-                    <div class="card-title">Active Users</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: var(--warning);" id="activeUsers">-</div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Sessions</div>
+                    <div class="stat-value" id="activeUsers">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">CPU Usage</div>
+                    <div class="stat-value" id="cpuUsage">- %</div>
+                    <div id="cpuBar" style="width: 100%; height: 4px; background: #f1f5f9; border-radius: 2px; margin-top: 0.5rem; overflow: hidden;">
+                        <div style="height: 100%; background: var(--primary-color); width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Memory Usage</div>
+                    <div class="stat-value" id="memUsage">- GB</div>
+                    <div id="memBar" style="width: 100%; height: 4px; background: #f1f5f9; border-radius: 2px; margin-top: 0.5rem; overflow: hidden;">
+                        <div style="height: 100%; background: #3b82f6; width: 0%;"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid" style="grid-template-columns: 2fr 1fr;">
-                <!-- User Table -->
+            <!-- Model Performance Analytics -->
+            <div class="card" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-brain"></i> Model Performance Analytics</div>
+                    <div style="font-size: 0.75rem; color: #64748b;">Accuracy and Latency by Model Engine</div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="modelTable">
+                        <thead>
+                            <tr>
+                                <th>AI Engine / Model</th>
+                                <th>Total Tasks</th>
+                                <th>Avg. Latency</th>
+                                <th>Success Rate</th>
+                                <th>Lead Researcher</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modelTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Analyzing model metrics...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- User Management -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">User Management</div>
-                        <button onclick="openModal()"
-                            style="background:var(--primary-color); color:white; border:none; padding:0.25rem 0.75rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">+
-                            Add User</button>
+                        <button style="background: var(--primary-color); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">+ Add User</button>
                     </div>
                     <table id="userTable">
                         <thead>
@@ -88,51 +278,69 @@
                     </table>
                 </div>
 
-                <!-- Activity Log -->
+                <!-- Recent Activity (Mini) -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">User Activity</div>
-                        <span style="font-size: 0.8rem; color: #aaa;" id="activityUserLabel">Select a user</span>
                     </div>
-                    <div id="activityLog" style="max-height: 400px; overflow-y: auto;">
-                        <p style="color: #666; text-align: center; padding: 2rem;">Click "View Activity" on a user to
-                            see logs.</p>
+                    <div id="activityLog" style="font-size: 0.85rem; color: #64748b;">
+                        <p style="text-align: center; padding: 2rem;">Click "View Activity" to see logs.</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Platform Logs (The organized table the user wanted) -->
+            <div class="card logs-container">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-terminal"></i> Platform Activity Stream (Live)</div>
+                    <select id="logTypeSelect" onchange="fetchPlatformLogs()" style="border: 1px solid var(--border-color); padding: 0.3rem; border-radius: 6px; font-size: 0.8rem;">
+                        <option value="access">Access Logs</option>
+                        <option value="performance">Performance Logs</option>
+                        <option value="system">System Logs</option>
+                        <option value="errors">Error Logs</option>
+                    </select>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                            <tr>
+                                <th style="width: 120px;">Time</th>
+                                <th style="width: 100px;">Level</th>
+                                <th style="width: 180px;">User</th>
+                                <th>Event Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <tr><td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">Loading platform logs...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:8000/api';
+        const API_URL = window.location.origin + '/api';
+        const token = localStorage.getItem('token');
 
         // Auth Guard
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('role');
-
-        if (!token || role !== 'admin') {
+        if (!token || localStorage.getItem('role') !== 'admin') {
             window.location.href = 'login.html';
         }
 
         async function fetchStats() {
             try {
-                const res = await fetch(`${API_URL}/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${token}` } // Not actually checked by my simple middleware yet, but good practice
-                });
+                const res = await fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 document.getElementById('totalUsers').textContent = data.total_users;
                 document.getElementById('totalActivities').textContent = data.total_activities;
                 document.getElementById('activeUsers').textContent = data.active_users;
-            } catch (e) {
-                console.error("Error fetching stats", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         async function fetchUsers() {
             try {
-                const res = await fetch(`${API_URL}/admin/users`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const users = await res.json();
                 const tbody = document.querySelector('#userTable tbody');
                 tbody.innerHTML = '';
@@ -140,143 +348,136 @@
                 users.forEach(user => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${user.email}</td>
+                        <td style="font-weight:600;">${user.email}</td>
                         <td>${user.full_name || '-'}</td>
-                        <td>${user.is_superuser ? '<span style="color:var(--primary-color)">Admin</span>' : 'User'}</td>
-                        <td>${user.is_active ? 'Active' : 'Inactive'}</td>
-                        <td>
-                            <button onclick="viewActivity('${user.id}', '${user.email}')" style="background:none; border:none; color:var(--primary-color); cursor:pointer; text-decoration:underline;">View Activity</button>
-                        </td>
+                        <td><span class="badge ${user.is_superuser ? 'badge-admin' : 'badge-user'}">${user.is_superuser ? 'Admin' : 'User'}</span></td>
+                        <td><span style="color:#10b981"><i class="fas fa-circle" style="font-size:0.5rem"></i> Active</span></td>
+                        <td><button onclick="viewActivity('${user.id}', '${user.email}')" style="background:none; border:none; color:var(--primary-color); cursor:pointer; font-weight:600;">View Activity</button></td>
                     `;
                     tbody.appendChild(tr);
                 });
-                // Add User Modal Logic
-                const modalHtml = `
-                    <div id="userModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-                        <div class="card" style="width:400px; padding:2rem;">
-                            <h3 class="card-title" style="margin-bottom:1rem;">Add New User</h3>
-                            <form id="addUserForm">
-                                <div style="margin-bottom:1rem;">
-                                    <label style="display:block; margin-bottom:0.5rem; font-size:0.9rem;">Email</label>
-                                    <input type="email" id="newEmail" style="width:100%; padding:0.5rem; background:#0f172a; border:1px solid #334155; color:white; border-radius:4px;" required>
-                                </div>
-                                <div style="margin-bottom:1rem;">
-                                    <label style="display:block; margin-bottom:0.5rem; font-size:0.9rem;">Full Name</label>
-                                    <input type="text" id="newFullName" style="width:100%; padding:0.5rem; background:#0f172a; border:1px solid #334155; color:white; border-radius:4px;">
-                                </div>
-                                <div style="margin-bottom:1rem;">
-                                    <label style="display:block; margin-bottom:0.5rem; font-size:0.9rem;">Password</label>
-                                    <input type="password" id="newPassword" style="width:100%; padding:0.5rem; background:#0f172a; border:1px solid #334155; color:white; border-radius:4px;" required>
-                                </div>
-                                <div style="margin-bottom:1.5rem;">
-                                    <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem;">
-                                        <input type="checkbox" id="newIsAdmin"> Admin User
-                                    </label>
-                                </div>
-                                <div style="display:flex; gap:1rem;">
-                                    <button type="submit" style="flex:1; background:var(--primary-color); color:white; border:none; padding:0.5rem; border-radius:4px; cursor:pointer;">Create</button>
-                                    <button type="button" onclick="closeModal()" style="flex:1; background:transparent; border:1px solid #334155; color:white; padding:0.5rem; border-radius:4px; cursor:pointer;">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-                document.getElementById('addUserForm').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('newEmail').value;
-                    const password = document.getElementById('newPassword').value;
-                    const fullName = document.getElementById('newFullName').value;
-                    const isSuperuser = document.getElementById('newIsAdmin').checked;
-
-                    try {
-                        const res = await fetch(`${API_URL}/auth/register`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ email, password, full_name: fullName, is_superuser: isSuperuser })
-                        });
-
-                        if (!res.ok) {
-                            const data = await res.json();
-                            throw new Error(data.detail || 'Failed to create user');
-                        }
-
-                        alert('User created successfully');
-                        closeModal();
-                        fetchUsers(); // Refresh list
-                    } catch (err) {
-                        alert(err.message);
-                    }
-                });
-            } catch (e) {
-                console.error("Error fetching users", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
-        function openModal() {
-            document.getElementById('userModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('userModal').style.display = 'none';
-        }
-
-        async function viewActivity(userId, email) {
-            console.log("Viewing activity for ID:", userId, "Email:", email);
-            if (!userId || userId === 'undefined') {
-                alert("Error: Invalid User ID. Please refresh the page.");
-                return;
-            }
-            document.getElementById('activityUserLabel').textContent = `Logs for: ${email}`;
-            const container = document.getElementById('activityLog');
-            container.innerHTML = '<p>Loading...</p>';
-
+        async function fetchPlatformLogs() {
+            const type = document.getElementById('logTypeSelect').value;
+            const tbody = document.getElementById('logTableBody');
             try {
-                const res = await fetch(`${API_URL}/admin/users/${userId}/activity`, {
+                const res = await fetch(`${API_URL}/devops/logs/tail?log_type=${type}&lines=30`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!res.ok) throw new Error("Failed to fetch activity");
-                const activities = await res.json();
-
-                if (activities.length === 0) {
-                    container.innerHTML = '<p style="padding:1rem; color:#888;">No activity recorded.</p>';
+                const data = await res.json();
+                if (!data.lines || data.lines.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem; color:#94a3b8;">No ${type} logs available.</td></tr>`;
                     return;
                 }
 
-                let html = '<ul style="list-style:none;">';
-                activities.forEach(log => {
-                    const time = new Date(log.timestamp).toLocaleString();
+                let html = '';
+                data.lines.forEach(entry => {
+                    let level = 'INFO', ts = '--:--', user = 'system', message = '';
+                    let logger = '';
+                    let rowStyle = '';
+
+                    if (typeof entry === 'object') {
+                        level = entry.level || 'INFO';
+                        ts = entry.timestamp ? entry.timestamp.split('T')[1].split('.')[0] : ts;
+                        user = entry.user || 'system';
+                        logger = entry.logger || 'platform';
+                        
+                        // Structured formatting like the user's example: [METHOD] /PATH → STATUS (LATENCY)
+                        if (entry.method && entry.path) {
+                            const latency = entry.latency_ms ? ` (${entry.latency_ms}ms)` : '';
+                            const status = entry.status_code || '---';
+                            message = `${entry.method} ${entry.path} → ${status}${latency}`;
+                        } else {
+                            message = entry.message || JSON.stringify(entry);
+                        }
+                    } else {
+                        message = entry;
+                    }
+                    
+                    if (level === 'ERROR') rowStyle = 'background: #fee2e2; border-left: 4px solid #ef4444;';
+                    else if (level === 'WARNING') rowStyle = 'background: #fef3c7; border-left: 4px solid #f59e0b;';
+                    else if (message.includes('COMPUTE')) rowStyle = 'background: #d1fae5; border-left: 4px solid #10b981;';
+
                     html += `
-                        <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee;">
-                            <div style="font-weight:600; font-size:0.9rem;">${log.action}</div>
-                            <div style="font-size:0.8rem; color:#666;">${time}</div>
-                            <div style="font-family:monospace; font-size:0.8rem; margin-top:0.25rem; color:#444;">${JSON.stringify(log.details)}</div>
-                        </li>
+                        <tr style="${rowStyle}">
+                            <td style="color:#64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">${ts}</td>
+                            <td><span class="badge ${level === 'ERROR' ? 'badge-danger' : 'badge-info'}" style="font-size:0.6rem; min-width: 50px; text-align: center;">${level}</span></td>
+                            <td style="color:#115e59; font-weight:600; font-size: 0.8rem;">
+                                <div style="font-size: 0.6rem; color: #94a3b8;">${logger}</div>
+                                @${user.split('@')[0]}
+                            </td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #334155;">
+                                ${message}
+                            </td>
+                        </tr>
                     `;
                 });
-                html += '</ul>';
-                container.innerHTML = html;
-            } catch (e) {
-                container.innerHTML = '<p style="color:red;">Error loading logs.</p>';
-            }
+                tbody.innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+
+        async function viewActivity(userId, email) {
+            const container = document.getElementById('activityLog');
+            container.innerHTML = '<p>Loading...</p>';
+            try {
+                const res = await fetch(`${API_URL}/admin/users/${userId}/activity`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const logs = await res.json();
+                if (logs.length === 0) { container.innerHTML = '<p>No activity recorded.</p>'; return; }
+                let html = '<ul style="list-style:none; padding:0;">';
+                logs.forEach(l => {
+                    html += `<li style="padding:0.5rem 0; border-bottom:1px solid #f1f5f9;"><strong>${l.action}</strong><br><small>${new Date(l.timestamp).toLocaleString()}</small></li>`;
+                });
+                container.innerHTML = html + '</ul>';
+            } catch (e) { container.innerHTML = '<p style="color:red;">Error loading logs.</p>'; }
         }
 
         function logout() {
             localStorage.removeItem('token');
-            localStorage.removeItem('user_id');
             localStorage.removeItem('role');
             window.location.href = 'login.html';
         }
 
-        // Init
-        document.getElementById('adminName').textContent = 'Admin'; // Could fetch from profile
+        async function fetchModelAnalytics() {
+            const tbody = document.getElementById('modelAnalyticsBody');
+            try {
+                const res = await fetch(`${API_URL}/devops/logs/model-analytics`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                
+                if (!data.models || data.models.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:#94a3b8;">No model data available.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                data.models.forEach(m => {
+                    const healthColor = m.success_rate > 95 ? '#10b981' : (m.success_rate > 80 ? '#f59e0b' : '#ef4444');
+                    html += `
+                        <tr>
+                            <td style="font-weight:700; color:var(--secondary-color);"><i class="fas fa-microchip" style="margin-right:0.5rem; color:var(--primary-color);"></i>${m.model_name}</td>
+                            <td>${m.requests} tasks</td>
+                            <td>${m.avg_latency_ms}ms</td>
+                            <td>${m.max_latency_ms}ms</td>
+                            <td><span class="badge" style="background:${healthColor}11; color:${healthColor}; border:1px solid ${healthColor}22;">${m.success_rate}%</span></td>
+                            <td style="font-size:0.8rem; color:#64748b;">@${m.top_user.split('@')[0]}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+
         fetchStats();
         fetchUsers();
+        fetchPlatformLogs();
+        fetchSystemHealth();
+        fetchModelAnalytics();
+        
+        setInterval(fetchPlatformLogs, 5000);
+        setInterval(fetchStats, 10000);
+        setInterval(fetchSystemHealth, 5000); // Fast update for CPU/RAM
+        setInterval(fetchModelAnalytics, 15000);
     </script>
 </body>
-
 </html>

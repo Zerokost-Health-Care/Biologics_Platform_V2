@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v225">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2.5rem;
+            max-width: 1200px;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .settings-nav {
+                display: none;
+            }
+
+            .settings-section {
+                padding: 1.5rem;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .settings-section div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+        }
+
+        .settings-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: #4d8b85;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        .settings-nav-item:hover,
+        .settings-nav-item.active {
+            background: #f0fdfa;
+            color: #10b981;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #4d8b85;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #e2eef1;
+            background: #f8fafc;
+            color: #115e59;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #10b981;
+            background: white;
+        }
+
+        .form-input[readonly] {
+            background: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .btn-edit {
+            background: #115e59;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-edit:hover {
+            background: #0d4a46;
+            transform: translateY(-2px);
+        }
+
+        .btn-save {
+            background: #10b981;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-cog" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Settings</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● PREFERENCES SYNCED</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
+        </aside>
+
+        <main class="main-content fade-in">
+            <div class="ghost-text">ACCOUNT</div>
+
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-user-gear" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Researcher Preferences</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Manage your discovery profile and
+                        platform identity.</p>
+                </div>
+            </section>
+
+            <div class="settings-grid">
+                <nav class="settings-nav">
+                    <a href="#profile" class="settings-nav-item active"><i class="fas fa-user"></i> Profile Details</a>
+                </nav>
+
+                <div class="settings-section">
+                    <div id="profile">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3 style="color: #115e59; font-weight: 800; font-size: 1.25rem;">Researcher Profile</h3>
+                            <button id="btn-edit-profile" class="btn-edit"><i class="fas fa-edit"></i> Edit
+                                Profile</button>
+                            <button id="btn-save-profile" class="btn-save"><i class="fas fa-save"></i> Save
+                                Changes</button>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" id="set-fullname" class="form-input" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Professional Email</label>
+                                <input type="email" id="set-email" class="form-input" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">User Role</label>
+                            <input type="text" id="set-role" class="form-input" readonly
+                                style="text-transform: uppercase;">
+                        </div>
+
+                        <div id="save-status"
+                            style="margin-top: 2rem; display: none; padding: 1rem; border-radius: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initial UI sync from local storage
+            const storedName = localStorage.getItem('user_fullname') || 'Researcher';
+            if (window.updateProfileUI) {
+                window.updateProfileUI(storedName);
+            }
+            document.getElementById('set-fullname').value = storedName;
+            document.getElementById('set-role').value = localStorage.getItem('role') || 'Scientist';
+
+            // Fetch real-time data from server
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const res = await fetch(`/api/auth/me?v=${Date.now()}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const user = await res.json();
+                        document.getElementById('set-email').value = user.email;
+                        if (user.full_name) {
+                            if (window.updateProfileUI) window.updateProfileUI(user.full_name);
+                            document.getElementById('set-fullname').value = user.full_name;
+                            localStorage.setItem('user_fullname', user.full_name);
+                        }
+                    }
+                } catch (e) { console.error("Settings sync error:", e); }
+            }
+
+            // Edit Profile Logic
+            const editBtn = document.getElementById('btn-edit-profile');
+            const saveBtn = document.getElementById('btn-save-profile');
+            const nameInput = document.getElementById('set-fullname');
+            const emailInput = document.getElementById('set-email');
+            const statusDiv = document.getElementById('save-status');
+
+            editBtn.onclick = () => {
+                nameInput.removeAttribute('readonly');
+                emailInput.removeAttribute('readonly');
+                nameInput.focus();
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'flex';
+            };
+
+            saveBtn.onclick = async () => {
+                const newName = nameInput.value.trim();
+                const newEmail = emailInput.value.trim();
+
+                if (!newName || !newEmail) {
+                    alert("Name and Email are required.");
+                    return;
+                }
+
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+
+                try {
+                    const res = await fetch('/api/auth/profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ full_name: newName, email: newEmail })
+                    });
+
+                    if (res.ok) {
+                        const updatedUser = await res.json();
+                        // Update local UI
+                        if (window.updateProfileUI) window.updateProfileUI(updatedUser.full_name);
+                        localStorage.setItem('user_fullname', updatedUser.full_name);
+
+                        nameInput.setAttribute('readonly', true);
+                        emailInput.setAttribute('readonly', true);
+                        saveBtn.style.display = 'none';
+                        editBtn.style.display = 'flex';
+
+                        statusDiv.style.display = 'block';
+                        statusDiv.style.background = '#f0fdf4';
+                        statusDiv.style.color = '#166534';
+                        statusDiv.innerText = "Profile updated successfully! Identity synced across platform.";
+                        setTimeout(() => statusDiv.style.display = 'none', 3000);
+                    } else {
+                        const err = await res.json();
+                        throw new Error(err.detail || "Failed to update profile.");
+                    }
+                } catch (e) {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.background = '#fef2f2';
+                    statusDiv.style.color = '#991b1b';
+                    statusDiv.innerText = `Error: ${e.message}`;
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                }
+            };
+        });
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
+</body>
+
+</html>

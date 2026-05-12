@@ -206,3 +206,29 @@ async def discover_target(uniprot_id: str):
         await target.insert()
         
     return target
+
+from fastapi.responses import Response
+from app.utils.report_generator import generate_target_report
+
+@router.get("/{target_id}/report")
+async def download_target_report(target_id: str):
+    """
+    Generate and download a PDF report for a therapeutic target.
+    """
+    target = await Target.find_one(Target.uniprot_id == target_id)
+    if not target:
+        # Try ID if UniProt fails
+        target = await Target.get(target_id)
+        
+    if not target:
+        raise HTTPException(status_code=404, detail="Target not found")
+    
+    pdf_bytes = generate_target_report(target.dict())
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Target_Report_{target_id}.pdf"
+        }
+    )

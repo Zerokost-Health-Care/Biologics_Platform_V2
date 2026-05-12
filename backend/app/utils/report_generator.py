@@ -208,3 +208,179 @@ def generate_formulation_pdf(form_data, pre_data):
     pdf.multi_cell(0, 8, "Note: This formulation design is AI-generated based on predicted molecular properties. Physical stability testing and compatibility studies (DSC, TGA, HPLC) are recommended for final validation.")
 
     return bytes(pdf.output(dest='S'))
+
+def generate_screening_pdf(job_data):
+    pdf = PDFReport()
+    pdf.alias_nb_pages()
+    pdf.add_page()
+    
+    # Section Header
+    pdf.set_fill_color(232, 234, 246)
+    pdf.set_font('Arial', 'B', 14)
+    pdf.cell(0, 10, ' HIGH-THROUGHPUT HIT SCREENING REPORT', 0, 1, 'L', fill=True)
+    pdf.ln(5)
+    
+    # Metadata
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'Target ID:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, str(job_data.get('target_id')), 0, 1)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'Library ID:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, str(job_data.get('library_id')), 0, 1)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'AI Model:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, str(job_data.get('results', {}).get('model_used', 'XGBoost-v1')), 0, 1)
+    pdf.ln(10)
+    
+    # Results Summary
+    pdf.set_fill_color(26, 35, 126)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, ' Screening Results Summary', 0, 1, 'L', fill=True)
+    pdf.set_text_color(0, 0, 0)
+    
+    hits = job_data.get('results', {}).get('top_hits', [])
+    pdf.set_font('Arial', '', 11)
+    pdf.cell(0, 10, f"Total Compounds Screened: {job_data.get('results', {}).get('hits_found', 0)}", 0, 1)
+    pdf.cell(0, 10, f"Identified Hits (Top {len(hits)}):", 0, 1)
+    pdf.ln(5)
+    
+    # Table Header
+    pdf.set_fill_color(245, 245, 245)
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(15, 10, 'Rank', 1, 0, 'C', fill=True)
+    pdf.cell(45, 10, 'Compound ID', 1, 0, 'C', fill=True)
+    pdf.cell(100, 10, 'SMILES (Truncated)', 1, 0, 'C', fill=True)
+    pdf.cell(30, 10, 'pIC50', 1, 1, 'C', fill=True)
+    
+    # Table Body
+    pdf.set_font('Arial', '', 9)
+    for i, hit in enumerate(hits):
+        rank = str(i + 1)
+        comp_id = str(hit.get('molecule_id', f"CMP_{i}"))[:15]
+        smiles = str(hit.get('smiles', ''))[:50] + "..."
+        score = str(hit.get('affinity', '0.0'))
+        
+        pdf.cell(15, 8, rank, 1, 0, 'C')
+        pdf.cell(45, 8, comp_id, 1, 0, 'C')
+        pdf.cell(100, 8, smiles, 1, 0, 'L')
+        pdf.cell(30, 8, score, 1, 1, 'C')
+        
+        if i >= 40: # Page break safety
+            break
+            
+    pdf.ln(10)
+    pdf.set_font('Arial', 'I', 9)
+    pdf.multi_cell(0, 6, "Report Note: Binding affinity scores (pIC50) are predicted using a 2,400-parameter XGBoost classifier. Scores > 7.0 indicate high potency candidates. Structural validation via molecular docking is recommended for top-ranked hits.")
+
+    return bytes(pdf.output(dest='S'))
+
+def generate_target_report(target_data):
+    pdf = PDFReport()
+    pdf.alias_nb_pages()
+    pdf.add_page()
+    
+    # Section Header
+    pdf.set_fill_color(232, 234, 246)
+    pdf.set_font('Arial', 'B', 14)
+    pdf.cell(0, 10, ' THERAPEUTIC TARGET DISCOVERY REPORT', 0, 1, 'L', fill=True)
+    pdf.ln(5)
+    
+    # Metadata Section
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'Target Name:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, str(target_data.get('name')), 0, 1)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'UniProt ID:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, str(target_data.get('uniprot_id', 'N/A')), 0, 1)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'PDB Structures:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, ", ".join(target_data.get('pdb_ids', [])), 0, 1)
+    
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(50, 8, 'Source:', 0, 0)
+    pdf.set_font('Arial', '', 12)
+    source = "RCSB PDB (Crystal)" if target_data.get('pdb_ids') else "AlphaFold (Predicted)"
+    pdf.cell(0, 8, source, 0, 1)
+    pdf.ln(5)
+
+    # Sequence Section
+    pdf.set_fill_color(26, 35, 126)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, ' Genomic Sequence Analysis', 0, 1, 'L', fill=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font('Courier', '', 9)
+    seq = str(target_data.get('sequence', 'No sequence data available.'))
+    pdf.multi_cell(0, 5, seq)
+    pdf.ln(10)
+
+    # PPI Interactome Table
+    pdf.set_fill_color(26, 35, 126)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, ' PPI Interactome Mapping (STRING)', 0, 1, 'L', fill=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(5)
+
+    partners = target_data.get('interaction_partners', [])
+    if partners:
+        pdf.set_fill_color(245, 245, 245)
+        pdf.set_font('Arial', 'B', 10)
+        pdf.cell(40, 8, 'Partner', 1, 0, 'C', fill=True)
+        pdf.cell(50, 8, 'Method', 1, 0, 'C', fill=True)
+        pdf.cell(60, 8, 'Interaction Type', 1, 0, 'C', fill=True)
+        pdf.cell(40, 8, 'String Score', 1, 1, 'C', fill=True)
+
+        pdf.set_font('Arial', '', 10)
+        for p in partners:
+            pdf.cell(40, 8, str(p.get('symbol')), 1, 0, 'C')
+            pdf.cell(50, 8, str(p.get('method')), 1, 0, 'C')
+            pdf.cell(60, 8, str(p.get('type')), 1, 0, 'C')
+            pdf.cell(40, 8, f"{float(p.get('score', 0))*100:.0f}%", 1, 1, 'C')
+    else:
+        pdf.cell(0, 8, 'No protein interaction data available.', 0, 1)
+    
+    pdf.ln(10)
+
+    # ChEMBL Ligands Section
+    pdf.set_fill_color(26, 35, 126)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, ' Identified ChEMBL Binders (Top 15)', 0, 1, 'L', fill=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(5)
+
+    ligands = target_data.get('known_ligands', [])
+    if ligands:
+        pdf.set_fill_color(245, 245, 245)
+        pdf.set_font('Arial', 'B', 10)
+        pdf.cell(40, 8, 'ChEMBL ID', 1, 0, 'C', fill=True)
+        pdf.cell(30, 8, 'Metric', 1, 0, 'C', fill=True)
+        pdf.cell(30, 8, 'Value', 1, 0, 'C', fill=True)
+        pdf.cell(90, 8, 'SMILES Signature', 1, 1, 'C', fill=True)
+
+        pdf.set_font('Arial', '', 8)
+        for i, l in enumerate(ligands[:15]):
+            pdf.cell(40, 8, str(l.get('molecule_chembl_id')), 1, 0, 'C')
+            pdf.cell(30, 8, str(l.get('standard_type')), 1, 0, 'C')
+            pdf.cell(30, 8, f"{l.get('standard_value')} {l.get('standard_units')}", 1, 0, 'C')
+            pdf.cell(90, 8, str(l.get('smiles'))[:55] + "...", 1, 1, 'L')
+    else:
+        pdf.cell(0, 8, 'No bioactivity data found in ChEMBL.', 0, 1)
+
+    pdf.ln(10)
+    pdf.set_font('Arial', 'I', 9)
+    pdf.multi_cell(0, 6, "Platform Disclaimer: This report is generated by GenQuantis Discovery AI. Structural and bioactivity data is retrieved from external repositories (RCSB, UniProt, ChEMBL, STRING). Experimental validation is required for target tractability.")
+
+    return bytes(pdf.output(dest='S'))

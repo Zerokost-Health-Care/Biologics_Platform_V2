@@ -7,6 +7,7 @@ class ScreeningJob(Document):
     library_id: str
     status: str = "Pending" # Pending, Running, Completed, Failed
     results: Optional[Dict[str, Any]] = None
+    created_by: Optional[str] = None
     created_at: datetime = datetime.now()
     completed_at: Optional[datetime] = None
 

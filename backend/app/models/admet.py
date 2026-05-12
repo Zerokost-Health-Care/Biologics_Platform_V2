@@ -8,6 +8,7 @@ class ADMETJob(Document):
     target_id: Optional[str] = None
     status: str = "Pending"
     results: Optional[Dict[str, Any]] = None
+    created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
 

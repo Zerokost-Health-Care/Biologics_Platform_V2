@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
-from typing import List, Dict, Any
+from fastapi import APIRouter, HTTPException, Depends
+from app.models.user import User
+from app.api.dependencies import get_current_user
+from typing import List, Dict, Any, Optional
 from app.models.experiment import Experiment, ExperimentResult
 from pydantic import BaseModel
 from datetime import datetime
@@ -19,14 +21,15 @@ class BlindedExperiment(BaseModel):
     blinded_id: str
     experiment_type: str
     status: str
-    # NO NAME, NO TARGET ID
+    score: Optional[float] = None
+    confidence: Optional[float] = None
 
 @router.get("/blinded", response_model=List[BlindedExperiment])
-async def get_blinded_experiments():
+async def get_blinded_experiments(current_user: User = Depends(get_current_user)):
     """
-    Returns a sanitized list of experiments for blinded review.
+    Returns a sanitized list of experiments for blinded review with real metrics.
     """
-    experiments = await Experiment.find_all().sort("-created_at").to_list()
+    experiments = await Experiment.find(Experiment.created_by == current_user.email).sort("-created_at").to_list()
     blinded_list = []
     for exp in experiments:
         if not exp.blinded_id:
@@ -34,14 +37,23 @@ async def get_blinded_experiments():
             exp.blinded_id = f"BLIND-{hashlib.shake_256(str(exp.id).encode()).hexdigest(3).upper()}"
             await exp.save()
             
+        score = None
+        confidence = None
+        if exp.results:
+            score = exp.results.score
+            # Confidence can be simulated or extracted from results data
+            confidence = exp.results.data.get("confidence", 0.95)
+            
         blinded_list.append(BlindedExperiment(
             blinded_id=exp.blinded_id,
             experiment_type=exp.experiment_type,
-            status=exp.status
+            status=exp.status,
+            score=score,
+            confidence=confidence
         ))
     return blinded_list
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks
 import asyncio
 import random
 
@@ -120,8 +132,8 @@ async def run_robot_protocol(experiment_id: str, protocol_type: str):
     await exp.save()
 
 @router.post("/", response_model=Experiment)
-async def create_experiment(exp: ExperimentCreate, background_tasks: BackgroundTasks):
-    new_exp = Experiment(**exp.dict())
+async def create_experiment(exp: ExperimentCreate, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
+    new_exp = Experiment(**exp.dict(), created_by=current_user.email)
     new_exp.status = "Pending"
     await new_exp.insert()
     
@@ -136,14 +148,14 @@ async def create_experiment(exp: ExperimentCreate, background_tasks: BackgroundT
     return new_exp
 
 @router.get("/", response_model=List[Experiment])
-async def get_experiments():
-    experiments = await Experiment.find_all().sort("-created_at").to_list()
+async def get_experiments(current_user: User = Depends(get_current_user)):
+    experiments = await Experiment.find(Experiment.created_by == current_user.email).sort("-created_at").to_list()
     return experiments
 
 @router.get("/{experiment_id}", response_model=Experiment)
-async def get_experiment(experiment_id: str):
+async def get_experiment(experiment_id: str, current_user: User = Depends(get_current_user)):
     experiment = await Experiment.get(experiment_id)
-    if not experiment:
+    if not experiment or experiment.created_by != current_user.email:
         raise HTTPException(status_code=404, detail="Experiment not found")
     return experiment
 

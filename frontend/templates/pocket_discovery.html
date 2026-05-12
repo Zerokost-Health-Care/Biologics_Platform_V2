@@ -4,236 +4,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binding Pocket Discovery - Biologics Discovery Platform</title>
-    <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = 'login.html';
-    </script>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+    <title>Pocket Discovery | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v228">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/3dmol@latest/build/3Dmol-min.js"></script>
     <style>
-        .mol-container {
-            width: 100%;
-            height: 500px;
-            position: relative;
-            background-color: #020617;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin-top: 1rem;
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
         .pocket-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            border: 1px solid #eef2f3;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 1rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .pocket-card:hover {
-            background: rgba(14, 165, 233, 0.1);
-            border-color: var(--primary-color);
-            transform: translateX(5px);
+            border-color: #10b981;
+            transform: translateY(-2px);
         }
 
         .pocket-card.active {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 15px rgba(14, 165, 233, 0.3);
-            background: rgba(14, 165, 233, 0.15);
+            background: #115e59;
+            border-color: #115e59;
+        }
+
+        .pocket-card.active * {
+            color: white !important;
         }
 
         .tag {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            text-transform: uppercase;
-            font-weight: bold;
+            font-weight: 800;
         }
 
         .tag-ml {
-            background: #8b5cf6;
-            color: white;
+            background: #e0f2f1;
+            color: #00796b;
         }
 
         .tag-geo {
-            background: #0ea5e9;
-            color: white;
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        @media (max-width: 991px) {
+            .pocket-top-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .premium-card {
+                height: auto !important;
+                min-height: 500px;
+            }
+
+            #mol-viewer {
+                height: 400px !important;
+            }
+
+            #pocket-details-bar div {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1rem !important;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html" class="active">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-            </ul>
-            <div class="sidebar-footer">
-                <div class="nav-item">
-                    <a href="#" onclick="logout()"><span>🚪</span> Logout</a>
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-cube" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Pocket Discovery</span></span>
                 </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● CAVITY MAPPING ACTIVE</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Unified Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item active"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header Section -->
-            <div class="glass-card"
-                style="padding: 2.5rem; margin-bottom: 2rem; border-left: 4px solid var(--primary-color);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div>
-                        <h1 class="page-title" style="margin-bottom: 0.25rem; font-size: 2.5rem;">Binding Pocket
-                            Discovery</h1>
-                        <p id="scientific-name"
-                            style="color: var(--primary-color); font-weight: bold; margin-bottom: 1rem; font-family: 'JetBrains Mono'; font-size: 0.8rem;">
-                        </p>
-                        <p id="target-description-summary" style="color: var(--text-muted); max-width: 700px;">
-                            Identify druggable cavities and interaction interfaces using <span
-                                style="color: var(--primary-color);">P2Rank (ML-based)</span>
-                            and <span style="color: var(--secondary-color);">fpocket (Geometry-based)</span>. Predictive
-                            modeling for Protein-to-Protein disruption.
-                        </p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span
-                            style="font-family: monospace; color: var(--success); font-size: 0.8rem; border: 1px solid var(--success); padding: 0.4rem 0.8rem; border-radius: 4px;">SYSTEM_MODE:
-                            STRUCTURAL_SOLVER_v2.1</span>
-                    </div>
+        <main class="main-content fade-in">
+            <div class="ghost-text">POCKETS</div>
+
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-cube" style="font-size: 2.5rem; color: #10b981;"></i>
                 </div>
-            </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Pocket Discovery</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Analyze protein surface topology
+                        to identify druggable binding sites.</p>
+                </div>
+            </section>
 
-            <!-- Workflow Grid -->
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
-
-                <!-- Interaction Panel -->
-                <div class="fade-in">
-                    <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-                        <h3 style="margin-top: 0; color: white; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>🛰️</span> Target Acquisition
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <div class="pocket-top-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="premium-card" style="padding: 1.5rem !important;">
+                        <h3
+                            style="margin-bottom: 1.25rem; color: #115e59; font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-cog" style="opacity: 0.5;"></i> PROTEIN CONFIGURATION
                         </h3>
-                        <div style="margin-top: 1.5rem;">
-                            <label
-                                style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Structure
-                                Reference (PDB ID)</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="text" id="target-id-input" placeholder="e.g. 5CWZ"
-                                    style="flex: 1; background: #0f172a; border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 6px; font-family: monospace;">
-                                <button id="load-target-btn" class="btn-primary"
-                                    style="padding: 0 1rem; border-radius: 6px; cursor: pointer;">FETCH</button>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; text-transform: uppercase;">Target
+                                    ID</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="target-id-input" placeholder="EGFR / 5CWZ"
+                                        style="flex: 1; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2eef1; font-size: 0.9rem;">
+                                    <button id="load-target-btn"
+                                        style="background: #10b981; color: white; border: none; padding: 0 1.5rem; border-radius: 8px; font-weight: 800; cursor: pointer;">LOAD</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; text-transform: uppercase;">Algorithm
+                                    Selection</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <select id="model-select"
+                                        style="flex: 1; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2eef1; background: #f8fafc; font-size: 0.9rem; font-weight: 600;">
+                                        <option value="FPocket-v4.0">FPocket v4.0 (Geometric)</option>
+                                        <option value="DeepPocket-v1">DeepPocket v1 (ML)</option>
+                                        <option value="P2Rank-v2.1">P2Rank v2.1 (DL)</option>
+                                    </select>
+                                    <button id="discover-btn"
+                                        style="background: #115e59; color: white; border: none; padding: 0 1.5rem; border-radius: 8px; font-weight: 800; cursor: pointer;">SCAN</button>
+                                </div>
                             </div>
                         </div>
-
-                        <div style="margin-top: 1.5rem;">
-                            <label
-                                style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Detection
-                                Model</label>
-                            <select id="model-select"
-                                style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); color: white; padding: 0.75rem; border-radius: 6px;">
-                                <option value="p2rank">P2Rank (Machine Learning - Fast & Accurate)</option>
-                                <option value="fpocket">fpocket (Geometry & Voronoi - Robust)</option>
-                            </select>
-                        </div>
-
-                        <button id="discover-btn" class="btn-primary"
-                            style="width: 100%; margin-top: 2rem; padding: 1rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; background: linear-gradient(135deg, #0ea5e9, #8b5cf6);">
-                            Initiate Pocket Scan
-                        </button>
                     </div>
-
-                    <!-- Results List (Hidden by default) -->
-                    <div id="pockets-container" style="display: none;">
-                        <h3 style="color: white; margin-bottom: 1rem;">Detected Interfaces <span id="pocket-count-badge"
-                                style="background: var(--primary-color); font-size: 0.8rem; padding: 0 0.5rem; border-radius: 10px;">0</span>
-                        </h3>
-                        <div id="pocket-list" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
-                            <!-- Injected by JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Visualization Panel -->
-                <div class="fade-in">
-                    <div class="glass-card tech-border"
-                        style="padding: 0; min-height: 600px; overflow: hidden; display: flex; flex-direction: column;">
+                    <div id="pockets-container" class="premium-card" style="display: none; padding: 1.5rem !important;">
                         <div
-                            style="background: rgba(0,0,0,0.4); padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
-                            <h3
-                                style="margin: 0; font-family: monospace; font-size: 0.9rem; color: var(--primary-color);">
-                                >>> STRUCTURAL_RENDERER: <span id="viewer-pdb-id">NONE</span></h3>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn-secondary" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;"
-                                    onclick="resetCamera()">RESET CAMERA</button>
-                                <button class="btn-secondary" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;"
-                                    onclick="toggleSurface()">SURFACE ON/OFF</button>
-                            </div>
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="color: #115e59; font-size: 1rem; font-weight: 800;">DISCOVERED POCKETS</h3>
+                            <span id="pocket-count-badge"
+                                style="background: #f0fdfa; color: #10b981; padding: 0.25rem 0.75rem; border-radius: 8px; font-weight: 800; font-size: 0.75rem;">0</span>
                         </div>
-                        <div id="mol-viewer" class="mol-container" style="border: none; margin: 0; flex: 1;"></div>
-                        <div id="pocket-details-bar"
-                            style="background: #0f172a; border-top: 1px solid var(--border-color); padding: 1rem; display: none;">
-                            <div
-                                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center;">
-                                <div>
-                                    <div
-                                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">
-                                        Confidence</div>
-                                    <div id="det-score"
-                                        style="color: var(--success); font-weight: bold; font-size: 1.2rem;">--</div>
+                        <div id="pocket-list"
+                            style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;"></div>
+                    </div>
+                </div>
+
+                <div class="premium-card" style="height: 900px; display: flex; flex-direction: column; padding: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div id="scientific-name"
+                                style="font-family: monospace; font-size: 1.1rem; color: #10b981; font-weight: 800;">>>>
+                                SYSTEM_IDLE</div>
+                            <div id="viewer-pdb-id"
+                                style="font-size: 0.8rem; color: #4d8b85; font-weight: 600; font-family: monospace;">
+                                STATUS: WAITING_FOR_INPUT</div>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button onclick="resetCamera()"
+                                style="font-size: 0.8rem; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 800; color: #4d8b85;">RESET
+                                VIEW</button>
+                            <button onclick="toggleSurface()"
+                                style="font-size: 0.8rem; background: #10b981; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 800; box-shadow: 0 4px 12px rgba(16,185,129,0.2);">SURFACE
+                                MAP</button>
+                        </div>
+                    </div>
+                    <div id="mol-viewer"
+                        style="flex: 1; background: #f8fafc; border-radius: 20px; border: 1px solid #e2eef1; position: relative; overflow: hidden;">
+                    </div>
+                    <div id="pocket-details-bar"
+                        style="margin-top: 2rem; display: none; background: #f0fdfa; border: 1px solid rgba(16,185,129,0.1); border-radius: 16px; padding: 1.5rem;">
+                        <div
+                            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;">
+                            <div>
+                                <div
+                                    style="font-size: 0.75rem; color: #4d8b85; font-weight: 800; text-transform: uppercase;">
+                                    Pocket Score</div>
+                                <div id="det-score" style="color: #115e59; font-weight: 800; font-size: 1.2rem;">0.000
                                 </div>
-                                <div>
-                                    <div
-                                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">
-                                        Volume (Å³)</div>
-                                    <div id="det-vol" style="color: white; font-weight: bold; font-size: 1.2rem;">--
-                                    </div>
+                            </div>
+                            <div>
+                                <div
+                                    style="font-size: 0.75rem; color: #4d8b85; font-weight: 800; text-transform: uppercase;">
+                                    Volume (Å³)</div>
+                                <div id="det-vol" style="color: #115e59; font-weight: 800; font-size: 1.2rem;">0</div>
+                            </div>
+                            <div>
+                                <div
+                                    style="font-size: 0.75rem; color: #4d8b85; font-weight: 800; text-transform: uppercase;">
+                                    Druggability</div>
+                                <div id="det-drug" style="color: #115e59; font-weight: 800; font-size: 1.2rem;">0.00
                                 </div>
-                                <div>
-                                    <div
-                                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">
-                                        Druggability</div>
-                                    <div id="det-drug"
-                                        style="color: var(--primary-color); font-weight: bold; font-size: 1.2rem;">--
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">
-                                        Tool</div>
-                                    <div id="det-tool"
-                                        style="color: #facc15; font-weight: bold; font-size: 0.9rem; margin-top: 0.3rem;">
-                                        --</div>
-                                </div>
+                            </div>
+                            <div>
+                                <div
+                                    style="font-size: 0.75rem; color: #4d8b85; font-weight: 800; text-transform: uppercase;">
+                                    Detection Tool</div>
+                                <div id="det-tool" style="color: #10b981; font-weight: 800; font-size: 1rem;">N/A</div>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
-    <script src="../static/js/main.js?v=1.0.3"></script>
-    <script src="../static/js/pocket_discovery.js?v=2.0.1"></script>
-    <script src="../static/js/chatbot.js"></script>
     <script>
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'login.html';
-        }
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>
+    <script src="/static/js/pocket_discovery.js?v=force_refresh_v102"></script>
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
 </body>
 
 </html>

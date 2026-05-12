@@ -14,6 +14,7 @@ class Target(Document):
     uniprot_id: Optional[str] = None
     sequence: Optional[str] = None # Amino acid or nucleotide sequence
     description: Optional[str] = None
+    created_by: Optional[str] = None
     properties: Optional[dict] = None
     pdb_ids: List[str] = []
     alphafold_url: Optional[str] = None

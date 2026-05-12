@@ -4,156 +4,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Biologics Discovery Platform</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        const token = localStorage.getItem('token');
-        if (!token) window.location.href = 'login.html';
-    </script>
+    <title>GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v226">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand">
-                <span>🧬</span> BioPlatform
-            </div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html" class="active">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-            </ul>
-            <div class="sidebar-footer">
-                <div class="nav-item">
-                    <a href="#" onclick="logout()"><span>🚪</span> Logout</a>
+        <!-- Full Width Top Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: var(--primary); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-dna" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: var(--primary); font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Dashboard</span></span>
                 </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div
+                    style="color: #10b981; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; border-right: 1px solid rgba(16,185,129,0.2); padding-right: 1rem; margin-right: 1rem;">
+                    <span class="status-pulse-small"></span> PLATFORM STATUS: OPTIMAL
+                </div>
+                <div
+                    style="color: #115e59; font-weight: 700; font-size: 0.8rem; font-family: 'Fira Code', monospace; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-clock" style="opacity: 0.5;"></i> <span id="real-time-clock">00:00:00</span>
+                </div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar - Robustly Fixed -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item active"><i
+                    class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">Research Dashboard</h1>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <button onclick="window.location.href='landing.html'"
-                        style="background:none; border:none; color: white; cursor: pointer;">Home</button>
-                    <div id="api-status"
-                        style="padding: 0.25rem 0.75rem; border-radius: 999px; background: #334155; font-size: 0.875rem; color: #94a3b8;">
-                        Connecting...
+        <main class="main-content fade-in">
+            <div class="ghost-text">BIO DISCO</div>
+
+            <div class="dashboard-grid">
+                <!-- Left Panel -->
+                <div>
+                    <section class="hero-section">
+                        <img src="../static/images/mascot.png" class="mascot-img" alt="Mascot">
+                        <div class="hero-text">
+                            <h2 style="font-size: 1.5rem; font-weight: 400; color: #115e59;">Hi <span
+                                    id="hero-username">Scientist</span>,</h2>
+                            <h1 style="font-size: 2.2rem; font-weight: 700; color: #115e59;">You have a lot to catchup
+                                with...</h1>
+                        </div>
+                    </section>
+
+                    <h3 style="color: #10b981; font-weight: 700; margin-bottom: 1.5rem; font-size: 1.1rem;">Discovery
+                        Pipeline Status</h3>
+                    <div class="stats-grid-container">
+                        <div class="stat-card">
+                            <div style="font-size: 0.85rem; color: #4d8b85; margin-bottom: 0.75rem; font-weight: 600;">
+                                Total Molecules</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #115e59;" id="stat-total">1,248
+                            </div>
+                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 0.5rem;">Potential medicine
+                                leads identified.</div>
+                            <i class="fas fa-vial"></i>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 0.85rem; color: #4d8b85; margin-bottom: 0.75rem; font-weight: 600;">
+                                Success Rate</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #115e59;" id="stat-success">64.2%
+                            </div>
+                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 0.5rem;">Percentage of drugs
+                                passing safety checks.</div>
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 0.85rem; color: #4d8b85; margin-bottom: 0.75rem; font-weight: 600;">
+                                Active Trials</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #115e59;" id="stat-trials">12</div>
+                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 0.5rem;">Ongoing laboratory
+                                experiments.</div>
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                    </div>
+
+                    <div class="premium-card">
+                        <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem; color: #115e59;">Ongoing Discoveries</h3>
+                        <div id="active-discoveries-list">
+                            <!-- Data Injected -->
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Stats Grid with Holographic Effect -->
-            <div class="grid fade-in" style="grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-                <!-- Card 1 -->
-                <div class="glass-card bio-border" style="position: relative; overflow: hidden;">
-                    <div style="position: absolute; right: -20px; top: -20px; opacity: 0.1; font-size: 5rem;">🧬</div>
-                    <div class="card-body" style="text-align: center; padding: 1.25rem;">
-                        <h4
-                            style="color: var(--primary-color); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
-                            Total Targets</h4>
-                        <div style="font-size: 2.5rem; font-weight: 700; color: white; text-shadow: 0 0 20px rgba(14, 165, 233, 0.5);"
-                            id="target-count">--</div>
+                <!-- Right Panel -->
+                <div>
+                    <div class="premium-card" style="margin-bottom: 2rem;">
+                        <div
+                            style="width: 40px; height: 40px; background: #e0f2f1; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #10b981; margin-bottom: 1.5rem;">
+                            <i class="fas fa-wand-sparkles"></i>
+                        </div>
+                        <h3 style="margin-bottom: 1rem; color: #115e59; font-weight: 700;">Autonomous Discovery Engine
+                        </h3>
+                        <p style="font-size: 0.85rem; color: #4d8b85; line-height: 1.6; margin-bottom: 1.5rem;">
+                            Intelligent AI agents orchestrating high-fidelity molecular simulations, binding affinity
+                            optimization, and robotic validation workflows.
+                        </p>
+                        <button onclick="window.location.href='target_explorer.html'"
+                            style="background: #10b981; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                            Launch Interface
+                        </button>
                     </div>
-                </div>
 
-                <!-- Card 2 -->
-                <div class="glass-card bio-border" style="position: relative; overflow: hidden;">
-                    <div style="position: absolute; right: -20px; top: -20px; opacity: 0.1; font-size: 5rem;">🤖</div>
-                    <div class="card-body" style="text-align: center; padding: 1.25rem;">
-                        <h4
-                            style="color: #facc15; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
-                            Active AI Jobs</h4>
-                        <div style="font-size: 2.5rem; font-weight: 700; color: white; text-shadow: 0 0 20px rgba(250, 204, 21, 0.5);"
-                            id="screening-count">--</div>
+                    <div class="premium-card" style="margin-bottom: 2rem;">
+                        <div style="font-size: 0.8rem; color: #4d8b85; font-weight: 600; margin-bottom: 0.5rem;">
+                            Sequence Completion Rate</div>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #115e59; margin-bottom: 0.5rem;"
+                            id="stat-completion">17.95%</div>
+                        <div style="font-size: 0.75rem; color: #4d8b85;">from <span id="stat-seq-count">21</span>
+                            Sequences</div>
                     </div>
-                </div>
 
-                <!-- Card 3 -->
-                <div class="glass-card bio-border" style="position: relative; overflow: hidden;">
-                    <div style="position: absolute; right: -20px; top: -20px; opacity: 0.1; font-size: 5rem;">🧪</div>
-                    <div class="card-body" style="text-align: center; padding: 1.25rem;">
-                        <h4
-                            style="color: #4ade80; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
-                            Experiments</h4>
-                        <div style="font-size: 2.5rem; font-weight: 700; color: white; text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);"
-                            id="experiment-count">--</div>
-                    </div>
-                </div>
-
-                <!-- Card 4: GPU Heartbeat -->
-                <div class="glass-card bio-border" style="position: relative; overflow: hidden;">
-                    <div class="card-body" style="text-align: center; padding: 1.25rem;">
-                        <h4
-                            style="color: #f43f5e; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
-                            Cluster Load</h4>
-                        <div style="display: flex; align-items: baseline; justify-content: center; gap: 0.5rem;">
-                            <span
-                                style="font-size: 2.5rem; font-weight: 700; color: white; text-shadow: 0 0 20px rgba(244, 63, 94, 0.5);"
-                                id="gpu-load">0%</span>
-                            <span style="font-size: 0.875rem; color: var(--text-muted);">GPU-01</span>
+                    <div class="premium-card">
+                        <h3 style="margin-bottom: 1rem; color: #115e59; font-size: 0.9rem; font-weight: 800;">LIVE
+                            SYSTEM FEED</h3>
+                        <div id="live-log"
+                            style="background: #0f172a; color: #4ade80; font-family: 'Fira Code', monospace; padding: 1rem; border-radius: 10px; font-size: 0.7rem; height: 180px; overflow-y: auto; line-height: 1.5;">
+                            <div>[SYSTEM] Platform initialized...</div>
+                            <div>[AUTH] Researcher session active.</div>
                         </div>
                     </div>
                 </div>
             </div>
-
-
-
-            <!-- Lower Section: Activity & Charts -->
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-                <div class="glass-card" style="padding: 1.5rem; overflow: hidden;">
-                    <h3 class="card-title" style="margin-bottom: 1rem;">Molecular Discovery Stream</h3>
-                    <div id="throughput-chart" style="width: 100%; height: 300px;"></div>
-                </div>
-                <div class="glass-card" style="padding: 1.5rem; overflow: hidden;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 class="card-title">Compute Cluster Logs</h3>
-                        <div id="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #4ade80;"></div>
-                    </div>
-                    <div id="activity-feed" class="terminal-log" style="height: 300px; font-size: 0.75rem; overflow-y: auto;">
-                        <!-- JS injected content -->
-                    </div>
-                </div>
-            </div>
-
-            <style>
-                @keyframes ekg {
-                    0% {
-                        left: -100%;
-                    }
-
-                    100% {
-                        left: 100%;
-                    }
-                }
-
-                .bio-border {
-                    border-left: 3px solid var(--primary-color);
-                }
-
-                .tech-corner {
-                    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
-                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-                }
-            </style>
         </main>
     </div>
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script>
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="../static/js/main.js"></script>
-    <script src="../static/js/dashboard_charts.js"></script>
-    <script src="../static/js/chatbot.js"></script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start Real-time Clock
+            const updateClock = () => {
+                const el = document.getElementById('real-time-clock');
+                if (el) {
+                    const now = new Date();
+                    el.innerText = now.toLocaleTimeString();
+                }
+            };
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Set hero username
+            const heroDisplay = document.getElementById('hero-username');
+            if (heroDisplay) heroDisplay.innerText = localStorage.getItem('user_fullname') || localStorage.getItem('full_name') || 'Scientist';
+
+            // Dashboard logic
+            const updateStats = async () => {
+                try {
+                    const res = await fetch('/api/monitoring/stats');
+                    if (res.ok) {
+                        const s = await res.json();
+                        if (document.getElementById('stat-total')) document.getElementById('stat-total').textContent = (s.target_count || 0).toLocaleString();
+                        if (document.getElementById('stat-success')) document.getElementById('stat-success').textContent = (s.system_health || '98%') + '%';
+                        if (document.getElementById('stat-trials')) document.getElementById('stat-trials').textContent = (s.experiment_count || 0);
+                        if (document.getElementById('stat-completion')) document.getElementById('stat-completion').textContent = (s.completion_rate || '0') + '%';
+                        if (document.getElementById('stat-seq-count')) document.getElementById('stat-seq-count').textContent = (s.total_sequences || '0');
+
+                        // Update Live Logs
+                        const logArea = document.getElementById('live-log');
+                        if (logArea && s.live_logs) {
+                            logArea.innerHTML = s.live_logs.map(log => `<div>${log}</div>`).join('');
+                        }
+                    }
+                } catch (e) { console.error(e); }
+            };
+
+            const updateExps = async () => {
+                try {
+                    const res = await fetch('/api/experiments/');
+                    if (res.ok) {
+                        const exps = await res.json();
+                        const list = document.getElementById('active-discoveries-list');
+                        if (!list) return;
+                        list.innerHTML = '';
+                        exps.slice(0, 5).forEach(exp => {
+                            const item = document.createElement('div');
+                            item.style.display = 'flex';
+                            item.style.alignItems = 'center';
+                            item.style.justifyContent = 'space-between';
+                            item.style.padding = '1rem';
+                            item.style.borderBottom = '1px solid #f1f5f9';
+
+                            const statusColor = exp.status === 'Completed' ? '#10b981' : '#f59e0b';
+
+                            item.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${statusColor};"></div>
+                                    <div>
+                                        <div style="font-weight: 700; color: #115e59; font-size: 0.9rem;">${exp.name}</div>
+                                        <div style="font-size: 0.75rem; color: #4d8b85;">${exp.experiment_type} • ${exp.target_id}</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">${new Date(exp.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                            `;
+                            list.appendChild(item);
+                        });
+                        if (exps.length === 0) {
+                            list.innerHTML = '<div style="padding: 2rem; text-align: center; color: #94a3b8; font-size: 0.85rem;">No active discoveries found.</div>';
+                        }
+                    }
+                } catch (e) { console.error(e); }
+            };
+
+            updateStats();
+            updateExps();
+            setInterval(updateStats, 5000);
+            setInterval(updateExps, 10000);
+        });
+    </script>
 </body>
 
 </html>

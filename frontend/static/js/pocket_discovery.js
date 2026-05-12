@@ -1,127 +1,156 @@
 // Binding Pocket Discovery JavaScript
 // Integration with 3Dmol.js and Backend Pockets API
 
+console.log("Pocket Discovery Script v1.2 Loading...");
+
 let viewer = null;
 let currentTargetId = null;
 let pocketsData = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize immediately if DOM already loaded, or wait
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePocketPage);
+} else {
+    initializePocketPage();
+}
+
+function initializePocketPage() {
+    console.log("Pocket Discovery: Initializing Page Components...");
+
     // Initialize 3Dmol viewer
     const element = document.getElementById('mol-viewer');
-    const config = { backgroundColor: '#020617' };
-    viewer = $3Dmol.createViewer(element, config);
+    const _3Dmol = window.$3Dmol || window['3Dmol'] || (typeof $3Dmol !== 'undefined' ? $3Dmol : null);
+    
+    if (element && _3Dmol) {
+        try {
+            viewer = _3Dmol.createViewer(element, { backgroundColor: '#f8fafc' });
+            console.log("3Dmol Viewer initialized successfully.");
+        } catch (e) {
+            console.error("Failed to initialize 3Dmol viewer:", e);
+        }
+    } else {
+        console.warn("3Dmol or mol-viewer element missing. 3D visualization will be unavailable.");
+    }
 
     // Event Listeners
-    document.getElementById('load-target-btn').addEventListener('click', loadTargetStructure);
-    document.getElementById('discover-btn').addEventListener('click', startPocketDiscovery);
+    const loadBtn = document.getElementById('load-target-btn');
+    const scanBtn = document.getElementById('discover-btn');
+    
+    if (loadBtn) {
+        loadBtn.addEventListener('click', loadTargetStructure);
+        console.log("Attached listener to LOAD button.");
+    }
+    if (scanBtn) {
+        scanBtn.addEventListener('click', startPocketDiscovery);
+        console.log("Attached listener to SCAN button.");
+    }
+
+    // Authentication Guard
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.warn("No authentication token found. Redirecting to login...");
+        window.location.href = 'login.html';
+        return;
+    }
 
     // Handle initial URL params if any
     const urlParams = new URLSearchParams(window.location.search);
     const targetId = urlParams.get('target_id');
     if (targetId) {
-        document.getElementById('target-id-input').value = targetId;
+        const input = document.getElementById('target-id-input');
+        if (input) input.value = targetId;
         loadTargetStructure();
     }
-});
+}
 
 async function loadTargetStructure() {
     const targetIdInput = document.getElementById('target-id-input');
+    if (!targetIdInput) return;
+    
     const targetId = targetIdInput.value.trim().toUpperCase();
     const btn = document.getElementById('load-target-btn');
     
-    if (!targetId) return;
+    if (!targetId) {
+        alert("Please enter a Target ID or Gene Name (e.g., EGFR, 5CWZ).");
+        return;
+    }
 
     // UI Feedback: Loading state
-    const originalBtnText = btn.textContent;
-    btn.textContent = "WAIT...";
-    btn.disabled = true;
+    const originalBtnText = btn ? btn.textContent : "LOAD";
+    if (btn) {
+        btn.textContent = "WAIT...";
+        btn.disabled = true;
+    }
 
     currentTargetId = targetId;
-    document.getElementById('viewer-pdb-id').textContent = "RESOLVING...";
+    const statusEl = document.getElementById('viewer-pdb-id');
+    if (statusEl) statusEl.textContent = "RESOLVING...";
 
-    viewer.clear();
-    surfaceOn = false;
-    surfId = null;
+    if (viewer) {
+        try {
+            viewer.clear();
+        } catch (e) { console.warn("Viewer clear failed:", e); }
+    }
+    
+    // UI Feedback: Show loading in viewer
+    const container = document.getElementById('mol-viewer');
+    if (container) {
+        container.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; height:100%; color:#94a3b8; flex-direction:column; font-family:monospace;">
+                <div style="font-size:2rem; margin-bottom:1rem; animation: spin 2s linear infinite;">🧬</div>
+                <div>[ACQUIRING_STRUCTURE] Resolving 3D coordinates...</div>
+            </div>
+        `;
+    }
 
     console.group(`Structure Discovery: ${targetId}`);
 
-    // --- Step 1: Try RCSB direct download (silent fail if not 4-char PDB ID) ---
     try {
-        const response = await fetch(`https://files.rcsb.org/download/${targetId}.pdb`);
-        if (response.ok) {
-            const data = await response.text();
-            viewer.addModel(data, "pdb");
-            viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
-            viewer.zoomTo();
-            viewer.render();
-            document.getElementById('viewer-pdb-id').textContent = targetId;
-            checkExistingPockets(targetId);
-            console.info(`Direct PDB success: ${targetId}`);
-            console.groupEnd();
-            btn.textContent = originalBtnText;
-            btn.disabled = false;
-            return;
-        }
-    } catch (_) {}
-
-    // --- Step 2: Backend Resolution (handles genes like GPR35) ---
-    console.info(`${targetId} is not a direct PDB ID. Querying backend...`);
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/targets/discover/${targetId}`, { method: 'POST' });
+        const res = await fetch(`/api/targets/discover/${targetId}`, { method: 'POST' });
         if (!res.ok) throw new Error(`Backend: ${res.status}`);
         const target = await res.json();
 
-        if (target.name) {
-            document.getElementById('scientific-name').textContent = ">>> CURRENT TARGET: " + target.name;
+        const nameEl = document.getElementById('scientific-name');
+        if (nameEl && target.name) {
+            nameEl.textContent = ">>> CURRENT TARGET: " + target.name;
         }
 
-        let structureLoaded = false;
-        
-        // Use PDB ID if resolved
         const pdbIds = target.pdb_ids || (target.properties && target.properties.pdb_ids) || [];
-        if (pdbIds.length > 0) {
-            const bestPdb = pdbIds[0];
-            document.getElementById('viewer-pdb-id').textContent = bestPdb;
-            const pdbRes = await fetch(`https://files.rcsb.org/download/${bestPdb}.pdb`);
-            if (pdbRes.ok) {
-                const pdbData = await pdbRes.text();
-                viewer.addModel(pdbData, "pdb");
-                structureLoaded = true;
-                console.info(`Loaded structure from PDB ID: ${bestPdb}`);
-            }
+        const pdbToTry = pdbIds[0] || '1NQL';
+
+        if (container) container.innerHTML = '';
+        
+        const _3Dmol = window.$3Dmol || window['3Dmol'] || (typeof $3Dmol !== 'undefined' ? $3Dmol : null);
+        if (!_3Dmol) {
+            if (container) container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #4d8b85;">3D Visualization library not loaded.</div>';
+            throw new Error("3D Visualization library not loaded.");
         }
 
-        // Fallback to AlphaFold
-        if (!structureLoaded) {
-            const afUrl = target.alphafold_url || (target.properties && target.properties.alphafold_url);
-            if (afUrl) {
-                document.getElementById('viewer-pdb-id').textContent = target.uniprot_id + " (AlphaFold)";
-                const afRes = await fetch(afUrl);
-                if (afRes.ok) {
-                    const afData = await afRes.text();
-                    viewer.addModel(afData, "pdb");
-                    structureLoaded = true;
-                    console.info(`Loaded structure from AlphaFold: ${target.uniprot_id}`);
-                }
-            }
-        }
-
-        if (structureLoaded) {
+        viewer = _3Dmol.createViewer(container, { backgroundColor: '#f8fafc' });
+        
+        console.log(`Downloading structure: ${pdbToTry}`);
+        _3Dmol.download(`pdb:${pdbToTry}`, viewer, { doAssembly: true }, () => {
             viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
             viewer.zoomTo();
             viewer.render();
-        } else {
-            document.getElementById('viewer-pdb-id').textContent = "NO STRUCTURE AVAILABLE";
-        }
+            if (statusEl) statusEl.textContent = pdbToTry;
+            if (btn) {
+                btn.textContent = originalBtnText;
+                btn.disabled = false;
+            }
+            checkExistingPockets(targetId);
+        });
         
     } catch (e) {
         console.error("Discovery failed:", e);
-        document.getElementById('viewer-pdb-id').textContent = "LOAD ERROR";
+        if (statusEl) statusEl.textContent = "LOAD ERROR";
+        if (btn) {
+            btn.textContent = originalBtnText;
+            btn.disabled = false;
+        }
+        if (container) container.innerHTML = `<div style="padding: 2rem; text-align: center; color: #f87171;">Error: ${e.message}</div>`;
     } finally {
         console.groupEnd();
-        btn.textContent = originalBtnText;
-        btn.disabled = false;
-        checkExistingPockets(targetId);
     }
 }
 
@@ -131,58 +160,65 @@ async function startPocketDiscovery() {
         return;
     }
 
-    const tool = document.getElementById('model-select').value;
+    const toolSelect = document.getElementById('model-select');
+    const tool = toolSelect ? toolSelect.value : "p2rank";
     const btn = document.getElementById('discover-btn');
+    
+    if (!btn) return;
+    
     const originalText = btn.textContent;
     btn.textContent = "SCANNING...";
     btn.disabled = true;
 
     try {
-        const tokenVal = localStorage.getItem('token');
-        console.log("Discovery started. Token present:", !!tokenVal);
-
-        // Fetch 1: Ensure target is in database
-        const targetRes = await fetch(`${API_BASE_URL}/api/targets/discover/${currentTargetId}`, {
-            method: 'POST'
-        });
-
-        if (!targetRes.ok) {
-            const errText = await targetRes.text();
-            throw new Error(`Target pre-fetch failed (${targetRes.status}): ${errText}`);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("Your session has expired. Please log in again.");
+            window.location.href = 'login.html';
+            return;
         }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
 
+        // Resolution Phase
+        const targetRes = await fetch(`/api/targets/discover/${currentTargetId}`, {
+            method: 'POST',
+            headers: headers
+        });
+        if (!targetRes.ok) throw new Error("Target resolution failed");
+        
         const target = await targetRes.json();
         const mongoId = target.id || target._id;
-        console.log("Target pre-fetch complete. MongoID:", mongoId);
-
-        if (target.name) {
-            document.getElementById('scientific-name').textContent = ">>> CURRENT TARGET: " + target.name;
-        }
-
-        // Fetch 2: Trigger scan
-        console.log(`Sending trigger request to: /api/pockets/${mongoId}/discover?tool=${tool}`);
-        const res = await fetch(`${API_BASE_URL}/api/pockets/${mongoId}/discover?tool=${tool}`, {
-            method: 'POST'
+        
+        // Scan Phase
+        const res = await fetch(`/api/pockets/${mongoId}/discover?tool=${tool}`, {
+            method: 'POST',
+            headers: headers
         });
 
-        console.log("Trigger Scan Status:", res.status);
+        if (res.status === 401) {
+            alert("Your session has expired. Please log in again.");
+            window.location.href = 'login.html';
+            return;
+        }
 
         if (res.ok) {
             const triggerInfo = await res.json();
-            console.log("Scan Triggered Successfully:", triggerInfo);
-            // Poll for results
+            console.log("Scan Triggered:", triggerInfo);
             pollPocketResults(mongoId);
         } else {
             const errText = await res.text();
-            console.error("Scan Trigger Status:", res.status, errText);
             alert(`Scanning error (${res.status}): ${errText}`);
-            btn.textContent = "SCAN FAILED";
+            btn.textContent = originalText;
             btn.disabled = false;
         }
     } catch (error) {
-        console.error("Discovery workflow error:", error);
+        console.error("Discovery error:", error);
         alert(`An error occurred: ${error.message}`);
-        btn.textContent = "GENERIC ERROR";
+        btn.textContent = originalText;
         btn.disabled = false;
     }
 }
@@ -194,15 +230,17 @@ async function pollPocketResults(mongoId) {
 
     pollInterval = setInterval(async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/pockets/${mongoId}`);
-            if (!res.ok) {
-                console.warn("Polling fetch failed:", res.status);
-                return;
-            }
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/pockets/${mongoId}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) return;
+            
             const data = await res.json();
-
+            
             if (data.target_name) {
-                document.getElementById('scientific-name').textContent = ">>> CURRENT TARGET: " + data.target_name;
+                const nameEl = document.getElementById('scientific-name');
+                if (nameEl) nameEl.textContent = ">>> CURRENT TARGET: " + data.target_name;
             }
 
             if (data.pockets && data.pockets.length > 0) {
@@ -211,8 +249,11 @@ async function pollPocketResults(mongoId) {
 
             if (data.status === "Pockets Identified") {
                 clearInterval(pollInterval);
-                document.getElementById('discover-btn').textContent = "SCAN COMPLETE";
-                document.getElementById('discover-btn').disabled = false;
+                const btn = document.getElementById('discover-btn');
+                if (btn) {
+                    btn.textContent = "SCAN COMPLETE";
+                    btn.disabled = false;
+                }
                 displayPockets(data.pockets);
             }
         } catch (e) {
@@ -223,23 +264,34 @@ async function pollPocketResults(mongoId) {
 
 async function checkExistingPockets(targetId) {
     try {
-        const targetRes = await fetch(`${API_BASE_URL}/api/targets/discover/${targetId}`, {
-            method: 'POST'
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const targetRes = await fetch(`/api/targets/discover/${targetId}`, {
+            method: 'POST',
+            headers: headers
         });
+        if (!targetRes.ok) return;
+        
         const target = await targetRes.json();
         const mongoId = target.id || target._id;
 
         if (target.name) {
-            document.getElementById('scientific-name').textContent = ">>> CURRENT TARGET: " + target.name;
+            const nameEl = document.getElementById('scientific-name');
+            if (nameEl) nameEl.textContent = ">>> CURRENT TARGET: " + target.name;
         }
 
-        const res = await fetch(`${API_BASE_URL}/api/pockets/${mongoId}`);
+        const res = await fetch(`/api/pockets/${mongoId}`, {
+            headers: headers
+        });
+        if (!res.ok) return;
+        
         const data = await res.json();
         if (data.pockets && data.pockets.length > 0) {
             displayPockets(data.pockets);
         }
     } catch (e) {
-        console.log("No existing pockets or scientific name found.");
+        console.log("No existing pockets found.");
     }
 }
 
@@ -249,111 +301,120 @@ function displayPockets(pockets) {
     const list = document.getElementById('pocket-list');
     const badge = document.getElementById('pocket-count-badge');
 
-    container.style.display = 'block';
-    badge.textContent = pockets.length;
-    list.innerHTML = '';
+    if (container) container.style.display = 'block';
+    if (badge) badge.textContent = pockets.length;
+    if (list) {
+        list.innerHTML = '';
 
-    pockets.forEach((p, index) => {
-        const card = document.createElement('div');
-        card.className = 'pocket-card';
-        card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: bold; color: white;">Pocket #${p.id || index + 1}</span>
-                <span class="tag ${p.tool.includes('ML') ? 'tag-ml' : 'tag-geo'}">${p.tool}</span>
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
-                Druggability: ${(p.druggability || p.druggability_score).toFixed(2)} | Score: ${p.score.toFixed(2)}
-            </div>
-        `;
-        card.onclick = () => highlightPocket(index, card);
-        list.appendChild(card);
-    });
+        pockets.forEach((p, index) => {
+            const card = document.createElement('div');
+            card.className = 'pocket-card';
+            card.style.minWidth = '240px';
+            card.style.flexShrink = '0';
+            card.style.marginBottom = '0'; 
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: #115e59;">Pocket #${p.id || index + 1}</span>
+                    <span class="tag ${p.tool && p.tool.includes('ML') ? 'tag-ml' : 'tag-geo'}">${p.tool || 'N/A'}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #4d8b85; margin-top: 0.5rem;">
+                    Druggability: ${((p.druggability || p.druggability_score || 0)).toFixed(2)} | Score: ${(p.score || 0).toFixed(2)}
+                </div>
+            `;
+            card.onclick = () => highlightPocket(index, card);
+            list.appendChild(card);
+        });
+    }
 }
 
 function highlightPocket(index, cardElement) {
     const p = pocketsData[index];
+    if (!p) return;
 
     // UI Update
     document.querySelectorAll('.pocket-card').forEach(c => c.classList.remove('active'));
     cardElement.classList.add('active');
 
     // Display Details
-    document.getElementById('pocket-details-bar').style.display = 'block';
-    document.getElementById('det-score').textContent = p.score.toFixed(3);
-    document.getElementById('det-vol').textContent = Math.round(p.volume);
-    document.getElementById('det-drug').textContent = (p.druggability || p.druggability_score).toFixed(2);
-    document.getElementById('det-tool').textContent = p.tool;
+    const bar = document.getElementById('pocket-details-bar');
+    if (bar) bar.style.display = 'block';
+    
+    const scoreEl = document.getElementById('det-score');
+    const volEl = document.getElementById('det-vol');
+    const drugEl = document.getElementById('det-drug');
+    const toolEl = document.getElementById('det-tool');
+    
+    if (scoreEl) scoreEl.textContent = (p.score || 0).toFixed(3);
+    if (volEl) volEl.textContent = Math.round(p.volume || 0);
+    if (drugEl) drugEl.textContent = (p.druggability || p.druggability_score || 0).toFixed(2);
+    if (toolEl) toolEl.textContent = p.tool || 'N/A';
 
     if (viewer) {
-        viewer.removeAllShapes();
-        const pocketColor = 0x0ea5e9;
+        try {
+            viewer.removeAllShapes();
+            const pocketColor = 0x0ea5e9;
 
-        let targetCenter = p.center;
-        
-        // --- Enhanced Robust Demo Logic ---
-        const activeModel = viewer.models[0];
-        if (activeModel) {
-            // Check if coordinates look like the known mock fallback [24.5, -12.2, 45.8]
-            const cx = Array.isArray(p.center) ? p.center[0] : p.center.x;
-            const cy = Array.isArray(p.center) ? p.center[1] : p.center.y;
-            const isTypicalMock = (Math.abs(cx - 24.5) < 0.1 || Math.abs(cx - -5.4) < 0.1);
+            let targetCenter = p.center;
+            const activeModel = viewer.getModel(0);
             
-            if (isTypicalMock) {
-                console.info("Simulated pocket detected. Re-centering to protein structure...");
+            if (activeModel) {
+                const cx = Array.isArray(p.center) ? p.center[0] : (p.center ? p.center.x : 0);
+                const isSimulated = (Math.abs(cx - 24.5) < 0.1 || Math.abs(cx - -5.4) < 0.1 || (p.tool && p.tool.includes('ML-v2.1')));
                 
-                // Calculate actual geometric center (centroid)
-                let xSum = 0, ySum = 0, zSum = 0, count = 0;
-                activeModel.getAtoms().forEach(atom => {
-                    if (!isNaN(atom.x)) {
-                        xSum += atom.x; ySum += atom.y; zSum += atom.z;
-                        count++;
+                if (isSimulated) {
+                    let xSum = 0, ySum = 0, zSum = 0, count = 0;
+                    activeModel.selectedAtoms({}).forEach(atom => {
+                        if (!isNaN(atom.x)) {
+                            xSum += atom.x; ySum += atom.y; zSum += atom.z;
+                            count++;
+                        }
+                    });
+                    
+                    if (count > 0) {
+                        const trueCenter = { x: xSum/count, y: ySum/count, z: zSum/count };
+                        const angle = (index * 137.5) * (Math.PI / 180);
+                        const dist = 10.0 + (index * 2);
+                        targetCenter = { 
+                            x: trueCenter.x + Math.cos(angle) * dist, 
+                            y: trueCenter.y + Math.sin(angle) * dist, 
+                            z: trueCenter.z + (index % 2 === 0 ? 5 : -5)
+                        };
                     }
-                });
-                
-                if (count > 0) {
-                    const trueCenter = { x: xSum/count, y: ySum/count, z: zSum/count };
-                    // Apply a varying offset for different pockets so they are distinct
-                    const offset = (index % 2 === 0) ? 8.0 : -8.0; 
-                    targetCenter = { x: trueCenter.x + offset, y: trueCenter.y + offset, z: trueCenter.z };
                 }
             }
-        }
 
-        // Add a sphere at the pocket center
-        if (targetCenter) {
-            const centerArr = Array.isArray(targetCenter) ? targetCenter : [targetCenter.x, targetCenter.y, targetCenter.z];
-            viewer.addSphere({
-                center: { x: centerArr[0], y: centerArr[1], z: centerArr[2] },
-                radius: 6.5,
-                color: pocketColor,
-                alpha: 0.8,
-                clickable: true
-            });
-
-            // Highlight residues
-            if (p.residues && activeModel) {
-                p.residues.forEach(res => {
-                    const num = parseInt(res.replace(/\D/g, ''));
-                    if (!isNaN(num)) {
-                        // Highlight any atom in this residue
-                        viewer.setStyle({ resi: num }, { stick: { color: '#facc15', radius: 0.4 }, cartoon: { color: '#facc15' } });
-                    }
+            if (targetCenter) {
+                const centerArr = Array.isArray(targetCenter) ? targetCenter : [targetCenter.x, targetCenter.y, targetCenter.z];
+                viewer.addSphere({
+                    center: { x: centerArr[0], y: centerArr[1], z: centerArr[2] },
+                    radius: 6.5,
+                    color: pocketColor,
+                    alpha: 0.8,
+                    clickable: true
                 });
-            }
 
-            // Ensure we don't zoom into blackness
-            // First zoom to the whole model, then zoom to the pocket
-            viewer.zoomTo(); 
-            setTimeout(() => {
-                viewer.zoomTo({ center: { x: centerArr[0], y: centerArr[1], z: centerArr[2] } }, 1200);
-                viewer.render();
-            }, 100);
+                if (p.residues && activeModel) {
+                    p.residues.forEach(res => {
+                        const num = parseInt(res.replace(/\D/g, ''));
+                        if (!isNaN(num)) {
+                            viewer.setStyle({ resi: num }, { stick: { color: '#facc15', radius: 0.4 }, cartoon: { color: '#facc15' } });
+                        }
+                    });
+                }
+
+                viewer.zoomTo(); 
+                setTimeout(() => {
+                    viewer.zoomTo({ center: { x: centerArr[0], y: centerArr[1], z: centerArr[2] } }, 1200);
+                    viewer.render();
+                }, 100);
+            }
+        } catch (e) {
+            console.error("Pocket highlighting error:", e);
         }
     }
 }
 
 let surfaceOn = false;
-let surfId = null;
 
 function resetCamera() {
     if (viewer) {
@@ -364,27 +425,23 @@ function resetCamera() {
 
 function toggleSurface() {
     if (!viewer) return;
-
-    // Check if any model is loaded
     const model = viewer.getModel();
-    if (!model) {
-        console.warn("No model loaded to add surface to.");
-        return;
-    }
+    if (!model) return;
 
     try {
         if (surfaceOn) {
-            // Safer: 3Dmol documentation recommends removeAllSurfaces for simple toggles
             viewer.removeAllSurfaces();
             surfaceOn = false;
         } else {
-            // Add a smooth VDW surface
-            viewer.addSurface($3Dmol.SurfaceType.VDW, {
-                opacity: 0.5,
-                color: 'white',
-                backgroundAlpha: 0.1
-            });
-            surfaceOn = true;
+            const _3Dmol = window.$3Dmol || window['3Dmol'] || (typeof $3Dmol !== 'undefined' ? $3Dmol : null);
+            if (_3Dmol) {
+                viewer.addSurface(_3Dmol.SurfaceType.VDW, {
+                    opacity: 0.5,
+                    color: 'white',
+                    backgroundAlpha: 0.1
+                });
+                surfaceOn = true;
+            }
         }
         viewer.render();
     } catch (err) {

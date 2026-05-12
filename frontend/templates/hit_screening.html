@@ -3,254 +3,410 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Hit Screening - Biologics Discovery Platform</title>
-    <link rel="stylesheet" href="../static/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hit Screening | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="../static/css/platform.css?v=force_refresh_v100">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .screening-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 991px) {
+            .screening-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .upload-zone {
+            border: 2px dashed #e2eef1;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: #10b981;
+            background: #f0fdfa;
+        }
+
+        .progress-log {
+            background: #0f172a;
+            color: #4ade80;
+            font-family: 'Fira Code', monospace;
+            padding: 1rem;
+            border-radius: 12px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .hit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        .hit-table th {
+            text-align: left;
+            padding: 1rem;
+            background: #f8fafc;
+            color: #4d8b85;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .hit-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.85rem;
+        }
+
+        .job-card {
+            background: white;
+            border: 1px solid #e2eef1;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .badge-running {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-completed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        /* Mobile Specific Fixes */
+        @media (max-width: 991px) {
+            .main-content {
+                margin-top: 85px !important;
+            }
+
+            .hero-section {
+                flex-direction: column !important;
+                text-align: center !important;
+                gap: 1rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .app-container,
+            .main-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0.5rem !important;
+            }
+
+            .premium-card {
+                padding: 1rem !important;
+            }
+
+            #info-trigger {
+                top: 85px !important;
+                right: 15px !important;
+                width: 42px !important;
+                height: 42px !important;
+            }
+        }
+
+        #info-trigger:hover {
+            background: #10b981;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+    </style>
 </head>
 
 <body>
     <div class="app-container">
+        <!-- Full Width Top Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-vial" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">XGBoost Screening</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● AI VIRTUAL SCREENING READY</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
         <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html" class="active">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-            </ul>
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item active"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
         </aside>
 
-        <main class="main-content">
-            <!-- Control Panel Header -->
-            <div
-                style="background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h1 class="page-title" style="margin-bottom: 0;">Virtual Screening Console</h1>
-                    <span style="font-family: monospace; color: var(--success); font-size: 0.85rem;"> > SYSTEM STATUS:
-                        ONLINE | MODEL: XGBOOST-HYBRID</span>
-                </div>
-                <div
-                    style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); padding: 0.5rem 1rem; border-radius: 6px; color: var(--success); font-weight: 600; font-size: 0.9rem;">
-                    GPU CLUSTER: READY
-                </div>
-            </div>
+        <main class="main-content fade-in">
+            <div class="ghost-text">XGBOOST</div>
 
-            <div class="grid fade-in" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <!-- Launch Console -->
-                <div class="card glass-card tech-border">
-                    <div class="card-header">
-                        <h3 class="card-title">Initiate Docking Protocol</h3>
-                    </div>
-                    <div class="card-body">
-                        <div style="display: grid; gap: 1.5rem;">
-                            <div>
-                                <label
-                                    style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Target
-                                    PDB ID</label>
-                                <div
-                                    style="display: flex; align-items: center; background: #0f172a; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 0.75rem;">
-                                    <span style="color: #64748b;">🧬</span>
-                                    <input type="text" id="screen-target-id" placeholder="Ex: 4INS"
-                                        style="width: 100%; padding: 0.75rem; background: transparent; border: none; color: white; font-family: monospace;">
-                                </div>
-                            </div>
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-microchip" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">High-Throughput Screening</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Utilizing XGBoost for rapid
+                        binding affinity prediction across massive molecular libraries.</p>
+                </div>
+            </section>
+
+            <div class="screening-grid">
+                <!-- Left Column: Controls -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="premium-card">
+                        <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 1rem; font-weight: 800;">SCREEN
+                            CONFIG</h3>
+
+                        <div style="margin-bottom: 1.5rem;">
                             <label
-                                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Structure
-                                Library (.smi, .sdf, .mol2, .csv, .json, .mzml)</label>
-                            <div
-                                style="display: flex; align-items: center; background: #0f172a; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem;">
-                                <span style="color: #64748b; margin-right: 0.5rem;">📁</span>
-                                <input type="file" id="screen-file"
-                                    accept=".smi,.txt,.csv,.sdf,.sd,.mol2,.json,.mzml,.mzxml"
-                                    style="width: 100%; color: white; font-family: monospace;">
-                                <input type="hidden" id="screen-library-id" value="Custom-Upload">
+                                style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem;">ACTIVE
+                                TARGET</label>
+                            <input type="text" id="target-select" placeholder="Enter Target ID (e.g. EGFR, P53...)"
+                                style="width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid #e2eef1; font-weight: 600; color: #115e59;">
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label
+                                style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; line-height: 1.4;">MOLECULAR
+                                LIBRARY<br><span style="opacity: 0.7;">(.SMI, .SDF, .MOL2, .CSV, .MZML,
+                                    .MZXML)</span></label>
+                            <div class="upload-zone" id="upload-zone"
+                                onclick="document.getElementById('file-input').click()">
+                                <i class="fas fa-cloud-upload-alt"
+                                    style="font-size: 2rem; color: #10b981; margin-bottom: 1rem;"></i>
+                                <p style="font-size: 0.8rem; color: #4d8b85; font-weight: 600;">Drop files or click to
+                                    upload</p>
+                                <p id="file-name"
+                                    style="font-size: 0.7rem; color: #10b981; margin-top: 0.5rem; display: none;"></p>
+                                <input type="file" id="file-input" style="display: none;"
+                                    accept=".smi,.sdf,.mol2,.csv,.mzml,.mzxml" multiple>
                             </div>
                         </div>
-                        <button id="run-screen-btn"
-                            style="background: var(--gradient-primary); color: white; padding: 1rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 1rem; box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3); transition: transform 0.1s;">
-                            Execute Screening
+
+                        <button id="start-screening-btn" class="btn-launch"
+                            style="width: 100%; justify-content: center;">
+                            <i class="fas fa-bolt"></i> RUN ANALYSIS
                         </button>
+
+                        <div id="real-time-log" class="progress-log" style="display: none;">
+                            <!-- WS Logs here -->
+                        </div>
                     </div>
-                    <div id="screen-status" style="margin-top: 1.5rem; font-family: monospace; font-size: 0.9rem;">
+
+                    <div class="premium-card">
+                        <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 1rem; font-weight: 800;">JOB
+                            HISTORY</h3>
+                        <div id="job-history-list">
+                            <!-- Loaded via JS -->
+                            <p style="text-align: center; color: #94a3b8; font-size: 0.8rem;">No previous jobs found.
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Right Column: Results -->
+                <div class="premium-card" style="min-height: 800px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h3 id="results-title" style="color: #115e59; font-size: 1.25rem;">Screening Results</h3>
+                        <div id="results-meta" style="font-size: 0.8rem; color: #4d8b85; font-weight: 600;"></div>
+                    </div>
+
+                    <div id="empty-results"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; color: #94a3b8;">
+                        <i class="fas fa-vial" style="font-size: 4rem; opacity: 0.1; margin-bottom: 1.5rem;"></i>
+                        <p>No active screening session. Upload a library to begin.</p>
+                    </div>
+
+                    <div id="results-container" style="display: none;">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <button id="download-pdf-btn" class="btn-launch"
+                                style="background: #f1f5f9; color: #115e59; border: 1px solid #e2eef1; padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                <i class="fas fa-file-pdf"></i> DOWNLOAD REPORT
+                            </button>
+                        </div>
+                        <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                            <table class="hit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Compound ID</th>
+                                        <th>SMILES Structure</th>
+                                        <th>pIC50 (Score)</th>
+                                        <th>Confidence</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hits-tbody">
+                                    <!-- Results here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Floating Info Icon -->
+    <button id="info-trigger"
+        style="position: fixed; right: 25px; top: 100px; background: #115e59; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none;">
+        <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <!-- Info Overlay -->
+    <div id="info-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.98); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(15px); animation: fadeIn 0.3s ease; padding: 30px;">
+        <div
+            style="position: relative; max-width: 90%; max-height: 90vh; width: fit-content; background: #020617; padding: 8px; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); transform: scale(0.9); animation: scaleUp 0.3s ease forwards; display: flex; flex-direction: column; align-items: center;">
+            <button id="info-close-top"
+                style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 10; border: 2px solid #020617;">&times;</button>
+
+            <div
+                style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px 10px 0 10px;">
+                <img src="/static/images/Virtual Hit Screening.png"
+                    style="max-width: 100%; max-height: 70vh; height: auto; width: auto; object-fit: contain; display: block; border-radius: 4px;">
             </div>
 
-            <!-- Live Monitor -->
-            <div class="card glass-card" style="position: relative; overflow: hidden;">
-                <div class="scanner-line"></div>
-                <div class="card-header">
-                    <h3 class="card-title">Real-Time Queue Monitor</h3>
-                </div>
-                <div class="card-body">
-                    <div id="jobs-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <p style="color: var(--text-muted); text-align: center; margin-top: 2rem;">Queue Empty.
-                            System Idle.</p>
-                    </div>
-                </div>
+            <div style="padding: 1.5rem 0; width: 100%; display: flex; justify-content: center;">
+                <button id="info-minimize-btn"
+                    style="background: #115e59; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 40px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <i class="fas fa-compress-alt"></i> MINIMIZE
+                </button>
             </div>
+        </div>
     </div>
 
     <script>
-        document.getElementById('run-screen-btn').addEventListener('click', async () => {
-            const targetId = document.getElementById('screen-target-id').value;
-            const fileInput = document.getElementById('screen-file');
-            const statusEl = document.getElementById('screen-status');
+        document.addEventListener('DOMContentLoaded', function () {
+            const trigger = document.getElementById('info-trigger');
+            const overlay = document.getElementById('info-overlay');
+            const closeTop = document.getElementById('info-close-top');
+            const minimizeBtn = document.getElementById('info-minimize-btn');
 
-            if (!targetId) { alert("Please enter a Target ID"); return; }
-            if (!fileInput.files[0]) { alert("Please select a molecular file (.smi, .sdf, .mol2, .csv, .json, .mzml)"); return; }
-
-            statusEl.innerHTML = '<span style="color: #94a3b8;">Uploading & Initializing Real Inference...</span>';
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            // URL params for target_id and library_id
-            const libId = fileInput.files[0].name;
-
-            try {
-                const res = await fetch(`http://127.0.0.1:8000/api/screening/run?target_id=${targetId}&library_id=${libId}`, {
-                    method: 'POST',
-                    body: formData // No Content-Type header; browser sets it with boundary
+            if (trigger) {
+                trigger.addEventListener('click', () => {
+                    overlay.style.display = 'flex';
                 });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    const jobId = data.id || data._id;
-                    statusEl.innerHTML = `<span style="color: #4ade80;">✓ AI Inference Started. Job ID: ${jobId}</span>`;
-                    loadJobs();
-                } else {
-                    throw new Error('Failed');
-                }
-            } catch (e) {
-                statusEl.innerHTML = '<span style="color: #f87171;">Error starting job.</span>';
-                console.error(e);
             }
+
+            const hideOverlay = () => {
+                overlay.style.display = 'none';
+            };
+
+            if (closeTop) closeTop.addEventListener('click', hideOverlay);
+            if (minimizeBtn) minimizeBtn.addEventListener('click', hideOverlay);
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) hideOverlay();
+            });
         });
-
-        async function loadJobs() {
-            const container = document.getElementById('jobs-list');
-            try {
-                const res = await fetch('http://127.0.0.1:8000/api/screening/');
-                const jobs = await res.json();
-
-                if (jobs.length === 0) {
-                    container.innerHTML = '<p style="color: var(--text-muted);">No active jobs.</p>';
-                    return;
-                }
-
-                container.innerHTML = jobs.map(j => {
-                    let detailsHtml = '';
-                    if (j.status === 'Completed' && j.results) {
-                        // Render scientific results table
-                        const hits = j.results.top_hits || [];
-                        const rows = hits.map(h => `
-                                        <tr style="border-bottom: 1px solid #334155;">
-                                            <td style="padding: 0.5rem; color: #60a5fa;">${h.molecule_id}</td>
-                                            <td style="padding: 0.5rem; color: #4ade80;">${h.affinity} kcal/mol</td>
-                                            <td style="padding: 0.5rem;">${(h.confidence * 100).toFixed(1)}%</td>
-                                        </tr>
-                                    `).join('');
-
-                        detailsHtml = `
-                                        <div style="margin-top: 1rem; background: #0f172a; padding: 1rem; border-radius: 6px;">
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                                                <span>Model: <strong>${j.results.model_used || 'XGBoost-Hybrid'}</strong></span>
-                                                <span>Hits Found: ${j.results.hits_found}</span>
-                                            </div>
-                                            <table style="width: 100%; font-size: 0.9rem; text-align: left; border-collapse: collapse;">
-                                                <thead>
-                                                    <tr style="color: var(--text-muted);">
-                                                        <th style="padding: 0.5rem;">Molecule ID</th>
-                                                        <th style="padding: 0.5rem;">Affinity</th>
-                                                        <th style="padding: 0.5rem;">Confidence</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>${rows}</tbody>
-                                            </table>
-                                        </div>
-                                    `;
-                    }
-
-                    const statusColor = j.status === 'Completed' ? '#4ade80' :
-                        j.status === 'Running' ? '#facc15' : '#94a3b8';
-
-                    return `
-                                <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; background: var(--background-dark);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div>
-                                            <span style="font-weight: 600; color: white;">Job ${j._id.substring(0, 8)}...</span>
-                                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-                                                Target: ${j.target_id} | Lib: ${j.library_id}
-                                            </div>
-                                        </div>
-                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                            ${j.status === 'Completed' ? `<button onclick='downloadReport("${j._id}", "${j.target_id}")' style="background: rgba(14, 165, 233, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">📄 PDF REPORT</button>` : ''}
-                                            <span style="border: 1px solid ${statusColor}; color: ${statusColor}; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">
-                                                ${j.status.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    ${detailsHtml}
-                                </div>
-                            `}).join('');
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function downloadReport(jobId, targetId) {
-            try {
-                // Find job results in current data or fetch via API
-                const res = await fetch(`http://127.0.0.1:8000/api/screening/`);
-                const jobs = await res.json();
-                const job = jobs.find(j => j._id === jobId);
-
-                if (!job || !job.results) return;
-
-                const pdfRes = await fetch('http://127.0.0.1:8000/api/reports/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        target_name: targetId,
-                        summary_data: {
-                            "Total Screened": job.results.hits_found || 0,
-                            "Model Used": job.results.model_used || "XGBoost-Hybrid",
-                            "Status": "Verified Discovery"
-                        },
-                        molecules: job.results.top_hits.map(h => ({ smiles: h.smiles, affinity: h.affinity }))
-                    })
-                });
-
-                if (pdfRes.ok) {
-                    const blob = await pdfRes.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Discovery_Report_${targetId}_${jobId.substring(0, 4)}.pdf`;
-                    a.click();
-                }
-            } catch (e) {
-                console.error("Report Error:", e);
-                alert("Failed to generate PDF report.");
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', loadJobs);
-        // Auto-refresh every 5 seconds to show progress
-        setInterval(loadJobs, 5000);
     </script>
-    </div>
-    </main>
-    </div>
-    <script src="../static/js/main.js"></script>
-    <script src="../static/js/chatbot.js"></script>
+
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script src="../static/js/screening.js?v=force_refresh_v2"></script>
+    <script>
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
 </body>
 
 </html>

@@ -1,145 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preformulation Analysis | Biologics Discovery</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="/static/js/main.js?v=1.0.2"></script>
-    <script src="/static/js/chatbot.js?v=1.0.2" defer></script>
+    <title>Preformulation Analysis | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v223">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: var(--background-dark); color: var(--text-main); }
-        .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid var(--border-color); }
-        .card-neo { background: var(--background-card); border: 1px solid var(--border-color); }
-        .status-pill { padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-        .pass { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .fail { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .preform-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        .prop-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .prop-item span {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .prop-item b {
+            color: #115e59;
+            font-weight: 800;
+        }
+
+        @media (max-width: 991px) {
+            .preform-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            div[style*="justify-content: space-between"] {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+                text-align: center;
+            }
+
+            div[style*="flex-direction: column"] {
+                align-items: center;
+                width: 100%;
+                margin-left: 0 !important;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen">
+
+<body>
     <div class="app-container">
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-clipboard-check" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Preformulation</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● STABILITY CORE READY</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Unified Sidebar -->
         <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-                <li class="nav-item" style="margin-top: auto;"><a href="#" onclick="logout()">Logout</a></li>
-            </ul>
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item active"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
         </aside>
 
-        <main class="main-content">
-            <header class="top-bar glass p-6 rounded-2xl mb-8 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="h-10 w-10 bg-gradient-to-tr from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-flask-vial text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight">Preformulation Analysis</h1>
-                        <p class="text-[10px] text-slate-400 font-mono">PHYSICOCHEMICAL STABILITY ENGINE</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-xs font-mono text-purple-400 bg-purple-400/10 px-3 py-1 rounded-full border border-purple-400/20">PRE_GEN: ACTIVE</span>
-                    <a href="/dashboard" class="text-sm font-medium hover:text-purple-400 transition">Dashboard</a>
-                </div>
-            </header>
+        <main class="main-content fade-in">
+            <div class="ghost-text">STABILITY</div>
 
-            <section class="glass p-8 rounded-3xl mb-8">
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
-                    <div class="lg:col-span-3">
-                        <h2 class="text-2xl font-bold mb-2">Lead Compound Analysis</h2>
-                        <p class="text-slate-400 text-sm mb-6">Input compound details to calculate API stability and physicochemical traits.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="compoundId" placeholder="Compound ID (e.g., LEAD-001)" 
-                                   class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 font-mono focus:ring-2 focus:ring-purple-500 outline-none transition">
-                            <input type="text" id="smiles" placeholder="SMILES String" 
-                                   class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 font-mono focus:ring-2 focus:ring-purple-500 outline-none transition">
-                        </div>
-                        <button onclick="runPreformulation()" id="analyzeBtn" 
-                                class="mt-4 w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-500 rounded-xl font-bold hover:scale-[1.01] active:scale-95 transition shadow-lg shadow-purple-900/20">
-                            Analyze Physicochemical Profile
-                        </button>
-                    </div>
-                    <div class="lg:col-span-1 border-l border-slate-800 pl-8">
-                        <div class="space-y-4">
-                            <div class="text-xs text-slate-500 uppercase tracking-widest">Lipinski Violation</div>
-                            <div id="lipinskiStatus" class="text-3xl font-bold text-slate-300">--</div>
-                            <div class="text-xs text-slate-500 uppercase tracking-widest">Drug-Likeness</div>
-                            <div id="drugLikeness" class="text-xl font-bold text-slate-300">--</div>
-                        </div>
-                    </div>
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-vial" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Physicochemical Stability</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Deep analysis of API stability,
+                        solubility, and solid-state properties for formulation design.</p>
                 </div>
             </section>
 
-            <div id="resultsContent" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
-                <!-- Properties -->
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="glass p-6 rounded-3xl">
-                        <h3 class="text-lg font-bold mb-6 flex items-center gap-2 text-purple-400">
-                            <i class="fas fa-atom"></i>
-                            Molecular Properties
-                        </h3>
-                        <div id="propList" class="space-y-4">
-                            <!-- Injected -->
-                        </div>
+            <div class="preform-grid">
+                <!-- Analysis Input -->
+                <div class="premium-card">
+                    <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 1rem; font-weight: 800;">STABILITY
+                        ENGINE</h3>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label
+                            style="display: block; font-size: 0.75rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem;">COMPOUND
+                            ID</label>
+                        <input type="text" id="compoundId" value="LEAD-OPTIMIZED-X"
+                            style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid #e2eef1; font-weight: 600; color: #115e59;">
                     </div>
-                    <div class="card-neo p-6 rounded-3xl">
-                        <h3 class="text-lg font-bold mb-4 text-indigo-400">Solubility Prediction</h3>
-                        <div id="solubilityVal" class="text-4xl font-bold text-white mb-2">--</div>
-                        <p class="text-xs text-slate-400">Estimated based on logP and molecular surface area.</p>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label
+                            style="display: block; font-size: 0.75rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem;">SMILES
+                            STRING</label>
+                        <input type="text" id="smiles" placeholder="Enter molecular notation..."
+                            style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid #e2eef1; font-family: monospace; font-size: 0.85rem; color: #1e293b;">
                     </div>
+
+                    <button id="analyzeBtn" onclick="runPreformulation()" class="btn-launch"
+                        style="width: 100%; justify-content: center; padding: 1rem;">
+                        <i class="fas fa-microscope"></i> ANALYZE STABILITY PROFILE
+                    </button>
                 </div>
 
-                <!-- Risks & Excipients -->
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="glass p-6 rounded-3xl border-red-500/20">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-red-400">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Stability Risks
-                            </h3>
-                            <ul id="riskList" class="space-y-3">
-                                <!-- Injected -->
-                            </ul>
+                <!-- Analysis Results -->
+                <div id="resultsContent" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div class="premium-card">
+                            <h4 style="font-size: 0.7rem; color: #64748b; font-weight: 800; margin-bottom: 1rem;">
+                                LIPINSKI VIOLATIONS</h4>
+                            <div id="lipinskiStatus" style="font-size: 2.5rem; font-weight: 800; color: #115e59;">0
+                            </div>
                         </div>
-                        <div class="glass p-6 rounded-3xl border-emerald-500/20">
-                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-emerald-400">
-                                <i class="fas fa-box-open"></i>
-                                Suggested Excipients
-                            </h3>
-                            <div id="excipientTags" class="flex flex-wrap gap-2">
-                                <!-- Injected -->
+                        <div class="premium-card">
+                            <h4 style="font-size: 0.7rem; color: #64748b; font-weight: 800; margin-bottom: 1rem;">
+                                DRUG-LIKENESS</h4>
+                            <div id="drugLikeness" class="badge" style="font-size: 1rem; padding: 0.75rem 1.25rem;">PASS
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="glass p-8 rounded-3xl flex justify-between items-center">
-                        <div>
-                            <h3 class="text-xl font-bold mb-4">Scientific Summary</h3>
-                            <p id="summaryText" class="text-slate-300 italic leading-relaxed text-sm">
-                                Awaiting analysis results...
-                            </p>
+
+                    <div class="premium-card">
+                        <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 0.9rem; font-weight: 800;">
+                            MOLECULAR PROPERTIES</h3>
+                        <div id="propList">
+                            <!-- Populated via JS -->
                         </div>
-                        <div class="flex gap-4">
-                            <button id="goToFormulationBtn" onclick="window.goToFormulation(document.getElementById('compoundId').value)" 
-                                    class="hidden px-6 py-3 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-xl font-bold hover:bg-indigo-500 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
-                                Design Formulation <i class="fas fa-flask"></i>
-                            </button>
-                            <button id="downloadPdfBtn" onclick="downloadPreformulationPdf()" 
-                                    class="hidden px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl font-bold hover:bg-red-500 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
-                                Download PDF <i class="fas fa-file-pdf"></i>
-                            </button>
+                    </div>
+
+                    <div class="premium-card"
+                        style="margin-top: 1.5rem; background: #f0fdf4; border-left: 4px solid #10b981;">
+                        <div class="summary-container">
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 0.5rem; color: #065f46; font-size: 0.9rem; font-weight: 800;">
+                                    SCIENTIFIC SUMMARY</h3>
+                                <p id="summaryText" style="color: #065f46; font-size: 0.95rem; line-height: 1.6;"></p>
+                            </div>
+                            <div class="summary-actions">
+                                <button onclick="downloadReport()" class="btn-launch"
+                                    style="background: white; color: #115e59; border: 1px solid #e2eef1; font-size: 0.75rem;">
+                                    <i class="fas fa-file-pdf"></i> DOWNLOAD REPORT
+                                </button>
+                                <button onclick="proceedToFormulation()" class="btn-launch"
+                                    style="background: #115e59; border-color: #115e59; font-size: 0.75rem;">
+                                    <i class="fas fa-arrow-right"></i> PROCEED TO FORMULATION
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,17 +222,21 @@
         </main>
     </div>
 
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
     <script>
-        const API_BASE = '/api/preformulation';
-
-        // Initialize from URL params
+        let currentData = null;
         document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('compound_id')) document.getElementById('compoundId').value = params.get('compound_id');
-            if (params.has('smiles')) document.getElementById('smiles').value = params.get('smiles');
-            
-            if (params.get('auto_run') === 'true') {
-                setTimeout(runPreformulation, 500);
+            // Sidebar logic handled by main.js
+            const username = localStorage.getItem('user_fullname') || localStorage.getItem('full_name') || 'Researcher';
+            const userDisplay = document.getElementById('nav-username');
+            if (userDisplay) userDisplay.innerText = username;
+
+            // Check for URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            const smiles = urlParams.get('smiles');
+            if (smiles) {
+                document.getElementById('smiles').value = smiles;
+                runPreformulation();
             }
         });
 
@@ -167,70 +246,57 @@
             const btn = document.getElementById('analyzeBtn');
             const results = document.getElementById('resultsContent');
 
-            if (!compound_id || !smiles) {
-                alert('Please provide both Compound ID and SMILES.');
-                return;
-            }
+            if (!smiles) return alert("Please enter a SMILES string.");
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i> Analyzing...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALCULATING STABILITY...';
 
             try {
-                const response = await fetch(`${API_BASE}/analyze`, {
+                const response = await fetch('/api/preformulation/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ compound_id, smiles })
                 });
-
-                if (!response.ok) throw new Error('Analysis failed');
                 const data = await response.json();
+                currentData = data;
                 renderResults(data);
-                results.classList.remove('hidden');
-                document.getElementById('goToFormulationBtn').classList.remove('hidden');
-                document.getElementById('downloadPdfBtn').classList.remove('hidden');
+                results.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-check"></i> ANALYSIS COMPLETE';
             } catch (err) {
-                alert('Error: ' + err.message);
+                alert("Preformulation Failed: " + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = 'Analyze Physicochemical Profile';
             }
+        }
+
+        function downloadReport() {
+            if (!currentData || !currentData.compound_id) return;
+            window.location.href = `/api/preformulation/report/${currentData.compound_id}/pdf`;
+        }
+
+        function proceedToFormulation() {
+            if (!currentData) return;
+            window.location.href = `formulation_design.html?id=${encodeURIComponent(currentData.compound_id)}&smiles=${encodeURIComponent(currentData.smiles || '')}`;
         }
 
         function renderResults(data) {
             document.getElementById('lipinskiStatus').innerText = data.lipinski_violations;
-            document.getElementById('drugLikeness').innerText = data.drug_likeness_status;
-            document.getElementById('drugLikeness').className = `text-xl font-bold ${data.drug_likeness_status === 'Pass' ? 'text-emerald-400' : 'text-red-400'}`;
+            const dl = document.getElementById('drugLikeness');
+            dl.innerText = data.drug_likeness_status.toUpperCase();
+            dl.className = data.drug_likeness_status === 'Pass' ? 'badge badge-completed' : 'badge badge-running';
 
-            const propList = document.getElementById('propList');
-            propList.innerHTML = `
-                <div class="flex justify-between border-b border-slate-800 pb-2"><span>Molecular Weight</span><b>${data.molecular_weight}</b></div>
-                <div class="flex justify-between border-b border-slate-800 pb-2"><span>LogP</span><b>${data.logp}</b></div>
-                <div class="flex justify-between border-b border-slate-800 pb-2"><span>TPSA</span><b>${data.tpsa} Å²</b></div>
-                <div class="flex justify-between border-b border-slate-800 pb-2"><span>H-Donors</span><b>${data.h_bond_donors}</b></div>
-                <div class="flex justify-between border-b border-slate-800 pb-2"><span>H-Acceptors</span><b>${data.h_bond_acceptors}</b></div>
-                <div class="flex justify-between border-b border-slate-800 pb-2"><span>Rotatable Bonds</span><b>${data.rotatable_bonds}</b></div>
+            document.getElementById('propList').innerHTML = `
+                <div class="prop-item"><span>Molecular Weight</span><b>${data.molecular_weight.toFixed(2)} Da</b></div>
+                <div class="prop-item"><span>Lipophilicity (LogP)</span><b>${data.logp.toFixed(2)}</b></div>
+                <div class="prop-item"><span>Polar Surface Area (TPSA)</span><b>${data.tpsa.toFixed(2)} Å²</b></div>
+                <div class="prop-item"><span>H-Bond Donors</span><b>${data.h_bond_donors}</b></div>
+                <div class="prop-item"><span>H-Bond Acceptors</span><b>${data.h_bond_acceptors}</b></div>
             `;
-
-            document.getElementById('solubilityVal').innerText = data.solubility_prediction;
-            
-            const risks = document.getElementById('riskList');
-            risks.innerHTML = data.stability_risk.length ? 
-                data.stability_risk.map(r => `<li class="text-sm flex items-start gap-2"><i class="fas fa-caret-right text-red-500 mt-1"></i> ${r}</li>`).join('') :
-                '<li class="text-sm text-slate-500">No major stability risks identified.</li>';
-
-            const excipients = document.getElementById('excipientTags');
-            excipients.innerHTML = data.recommended_excipients.map(e => 
-                `<span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-full">${e}</span>`
-            ).join('');
-
-            document.getElementById('summaryText').innerText = `Analysis complete for ${data.compound_id}. The molecule exhibits ${data.solubility_prediction.toLowerCase()} solubility and violates ${data.lipinski_violations} Lipinski rules. Stability profile suggests ${data.stability_risk.length ? 'monitoring for ' + data.stability_risk.join(', ') : 'a stable profile'}.`;
+            document.getElementById('summaryText').innerText = `Stability analysis complete for ${data.compound_id}. The profile predicts a ${data.solubility_prediction} solubility level. This molecule ${data.stability_risk.length ? 'presents moderate stability risks' : 'shows a stable physicochemical profile'} suitable for initial formulation development.`;
         }
 
-        async function downloadPreformulationPdf() {
-            const compound_id = document.getElementById('compoundId').value;
-            if (!compound_id) return;
-            window.location.href = `${API_BASE}/report/${compound_id}/pdf`;
-        }
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>
 </body>
+
 </html>

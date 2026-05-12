@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Manual | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_final_refresh">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --guide-primary: #115e59;
+            --guide-accent: #10b981;
+            --guide-bg: #f8fafc;
+            --guide-card: #ffffff;
+            --guide-text: #1e293b;
+            --guide-muted: #64748b;
+            --sidebar-w: 320px;
+        }
+
+        body {
+            background-color: var(--guide-bg);
+            color: var(--guide-text);
+            font-family: 'Outfit', 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            line-height: 1.7;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Comprehensive Sidebar */
+        .sidebar-nav {
+            width: var(--sidebar-w);
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 2.5rem 1.2rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            padding-left: 0.8rem;
+        }
+
+        .nav-group { margin-bottom: 2.5rem; }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--guide-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+            display: block;
+            padding-left: 0.8rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.8rem 1rem;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.2s;
+            margin-bottom: 0.3rem;
+        }
+
+        .nav-link:hover { background: #f1f5f9; color: var(--guide-primary); }
+        .nav-link.active {
+            background: var(--guide-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(17, 94, 89, 0.15);
+        }
+
+        /* Main Content */
+        .main-content-guide {
+            flex: 1;
+            padding: 5rem 6%;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .header-hero { margin-bottom: 8rem; text-align: center; }
+        .header-hero h1 { font-size: 4rem; font-weight: 800; color: var(--guide-primary); letter-spacing: -2.5px; margin-bottom: 1.5rem; }
+        .header-hero p { font-size: 1.3rem; color: var(--guide-muted); max-width: 900px; margin: 0 auto; }
+
+        /* Module Sections */
+        .section-block { margin-bottom: 15rem; scroll-margin-top: 6rem; padding-bottom: 6rem; border-bottom: 1px solid #e2e8f0; }
+        .section-block:last-child { border-bottom: none; }
+
+        .section-title { font-size: 2.8rem; font-weight: 800; color: var(--guide-primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 1.2rem; }
+        .section-description { font-size: 1.2rem; color: #475569; margin-bottom: 3rem; line-height: 1.8; }
+
+        /* Clarity Box */
+        .clarity-box {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 2rem;
+            background: #f0fdf4;
+            padding: 2rem;
+            border-radius: 24px;
+            margin-bottom: 3rem;
+            border: 1px solid #dcfce7;
+        }
+
+        .clarity-text h4 { color: #065f46; margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 800; }
+        .clarity-text p { color: #065f46; font-size: 1rem; margin: 0; }
+
+        /* Action Instructions */
+        .action-steps {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 2.5rem;
+            border-radius: 24px;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .action-steps h3 { font-size: 1.4rem; color: var(--guide-primary); margin-bottom: 1.5rem; font-weight: 800; }
+        .step-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; font-size: 1.05rem; color: #475569; }
+        .step-num { background: var(--guide-primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; flex-shrink: 0; }
+
+        /* MASSIVE IMAGE DISPLAY */
+        .image-showcase {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.1);
+            margin-bottom: 5rem;
+            position: relative;
+        }
+
+        .image-showcase img { width: 100%; height: auto; display: block; }
+        .image-tag { position: absolute; top: 1.5rem; right: 1.5rem; background: var(--guide-primary); color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
+        .image-desc { background: #f8fafc; padding: 1.5rem 2.5rem; border-top: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 1rem; }
+
+        /* Badge and Tooltip */
+        .ui-tag { background: #e0f2f1; color: var(--guide-primary); padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 800; font-family: 'Fira Code', monospace; border: 1px solid #b2dfdb; }
+
+        /* Footer */
+        .footer-cta { margin-top: 10rem; background: #115e59; color: white; padding: 6rem 4rem; border-radius: 40px; text-align: center; }
+        .footer-cta h2 { font-size: 3rem; font-weight: 800; margin-bottom: 1.5rem; }
+        .footer-cta a { color: var(--guide-accent); font-weight: 800; font-size: 1.8rem; text-decoration: none; border-bottom: 2px solid transparent; }
+        .footer-cta a:hover { border-color: var(--guide-accent); }
+
+        @media (max-width: 991px) {
+            .sidebar-nav { display: none; }
+            .main-content-guide { padding: 3rem 1.5rem; }
+            .header-hero { margin-bottom: 4rem; }
+            .header-hero h1 { font-size: 2.2rem; letter-spacing: -1px; }
+            .header-hero p { font-size: 1rem; }
+            .section-title { font-size: 1.8rem; }
+            .section-block { margin-bottom: 6rem; padding-bottom: 3rem; }
+            .clarity-box { grid-template-columns: 1fr; padding: 1.5rem; }
+            .action-steps { padding: 1.5rem; }
+            .footer-cta { padding: 3rem 1.5rem; margin-top: 5rem; }
+            .footer-cta h2 { font-size: 2rem; }
+            .footer-cta a { font-size: 1.2rem; }
+        }
+
+        /* --- Mobile Floating Navigation (Direct Override) --- */
+        .mobile-nav-bar {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10005;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            width: 90%;
+            max-width: 340px;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            color: #115e59;
+            text-decoration: none;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .mobile-nav-item i {
+            font-size: 1.2rem;
+            color: #10b981;
+        }
+
+        @media (max-width: 991px) {
+            .mobile-nav-bar {
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar Navigation (COMPLETE) -->
+        <aside class="sidebar-nav">
+            <div class="logo-box">
+                <div style="background: var(--guide-primary); color: white; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-microscope" style="font-size: 1.4rem;"></i>
+                </div>
+                <span style="font-weight: 800; font-size: 1.5rem; color: var(--guide-primary); letter-spacing: -1.5px;">GenQuantis</span>
+            </div>
+
+            <nav>
+                <div class="nav-group">
+                    <span class="nav-label">General</span>
+                    <a href="#dashboard" class="nav-link active"><i class="fas fa-th-large"></i> Dashboard</a>
+                    <a href="#settings" class="nav-link"><i class="fas fa-user-cog"></i> Account Settings</a>
+                </div>
+
+                <div class="nav-group">
+                    <span class="nav-label">Structural Pipeline</span>
+                    <a href="#target" class="nav-link"><i class="fas fa-search"></i> Target Explorer</a>
+                    <a href="#pockets" class="nav-link"><i class="fas fa-cube"></i> Pocket Identification</a>
+                    <a href="#screening" class="nav-link"><i class="fas fa-vial"></i> AI Hit Screening</a>
+                    <a href="#docking" class="nav-link"><i class="fas fa-link"></i> Molecular Docking</a>
+                </div>
+
+                <div class="nav-group">
+                    <span class="nav-label">Optimization & Safety</span>
+                    <a href="#lead-opt" class="nav-link"><i class="fas fa-magic"></i> Lead Optimization</a>
+                    <a href="#admet" class="nav-link"><i class="fas fa-shield-virus"></i> ADMET Prediction</a>
+                </div>
+
+                <div class="nav-group">
+                    <span class="nav-label">Experimental Hub</span>
+                    <a href="#preform" class="nav-link"><i class="fas fa-clipboard-check"></i> Preformulation</a>
+                    <a href="#formulation" class="nav-link"><i class="fas fa-mortar-pestle"></i> Formulation Design</a>
+                    <a href="#blinded" class="nav-link"><i class="fas fa-mask"></i> Blinded Results</a>
+                    <a href="#wetlab" class="nav-link"><i class="fas fa-robot"></i> Robotic Validation</a>
+                </div>
+
+                <div class="nav-group">
+                    <span class="nav-label">Outputs</span>
+                    <a href="#reports" class="nav-link"><i class="fas fa-file-pdf"></i> Discovery Reports</a>
+                    <a href="#shortcuts" class="nav-link"><i class="fas fa-bolt"></i> Workflow Shortcuts</a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content-guide">
+            <header class="header-hero">
+                <h1>Platform Command Manual</h1>
+                <p>A comprehensive, end-to-step guide to the GenQuantis Discovery ecosystem. Designed for both professional researchers and platform administrators.</p>
+            </header>
+
+            <!-- 1. Dashboard -->
+            <section id="dashboard" class="section-block">
+                <h2 class="section-title"><i class="fas fa-th-large"></i> 01. Dashboard Central</h2>
+                <p class="section-description">The main control hub where global platform metrics and experiment feeds are aggregated.</p>
+                
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-lightbulb"></i> Non-Scientist View:</h4>
+                        <p>Think of this as the "Mission Control" center. It shows you how many medicine projects are running and if the system is healthy.</p>
+                    </div>
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-flask"></i> Scientist View:</h4>
+                        <p>Aggregated GNN inference metrics, success probability distribution, and real-time computation logs from the backend engine.</p>
+                    </div>
+                </div>
+
+                <div class="image-showcase">
+                    <span class="image-tag">Interactive</span>
+                    <img src="/static/images/screenshots/dashboard.png" alt="Dashboard Main">
+                    <div class="image-desc">The main dashboard interface showing throughput metrics and success rates.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>How to use the Dashboard:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span>Check the <strong>Primary Cards</strong> for total analyzed molecules.</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span>Scroll to <strong>Ongoing Discoveries</strong> to see the live feed of tasks.</span></div>
+                    <div class="step-item"><div class="step-num">3</div><span>Click on any <strong>Target Name</strong> in the table to jump to its 3D structural page.</span></div>
+                </div>
+            </section>
+
+            <!-- 2. Settings -->
+            <section id="settings" class="section-block">
+                <h2 class="section-title"><i class="fas fa-user-cog"></i> 02. Account & Settings</h2>
+                <p class="section-description">Manage your research profile, update your name, and configure your session details.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/settings_main.png" alt="Settings Page">
+                    <div class="image-desc">The profile management interface for updating researcher identity.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>Updating your Profile:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span>Click <strong>Settings</strong> in the sidebar.</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span>In the "Full Name" box, type your name (e.g., <span class="ui-tag">Dr. Ashwin Kumar</span>).</span></div>
+                    <div class="step-item"><div class="step-num">3</div><span>Click <span class="ui-tag">Save Changes</span>. Your name will update on the dashboard greeting immediately.</span></div>
+                </div>
+            </section>
+
+            <!-- 3. Target Explorer -->
+            <section id="target" class="section-block">
+                <h2 class="section-title"><i class="fas fa-search"></i> 03. Target Explorer</h2>
+                <p class="section-description">Structural retrieval engine to fetch and visualize 3D protein structures.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/target_explorer_empty.png" alt="Target Input">
+                    <div class="image-desc">Step 1: Locate the search field to enter your Protein or Gene identifier.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>Search Instructions:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span>Type a Gene Symbol like <span class="ui-tag">EGFR</span> or PDB ID like <span class="ui-tag">5CWZ</span>.</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span>Click <strong>LOAD</strong>. The system will download the structure from the PDB database.</span></div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/target_explorer_egfr.png" alt="EGFR Loaded">
+                    <div class="image-desc">Step 2: The 3D viewer renders the protein. Use your mouse to rotate and zoom.</div>
+                </div>
+            </section>
+
+            <!-- 4. Pocket Discovery -->
+            <section id="pockets" class="section-block">
+                <h2 class="section-title"><i class="fas fa-cube"></i> 04. Pocket Identification</h2>
+                <p class="section-description">Mapping the geometric cavities of a protein to find where a drug can bind.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/pocket_discovery_scanning.png" alt="Scanning">
+                    <div class="image-desc">Real-time feedback: The AI scans the surface curvature of the protein.</div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/pocket_discovery_results.png" alt="Results">
+                    <div class="image-desc">Outcome: A table of binding sites ranked by Druggability Probability.</div>
+                </div>
+            </section>
+
+            <!-- 5. AI Hit Screening -->
+            <section id="screening" class="section-block">
+                <h2 class="section-title"><i class="fas fa-vial"></i> 05. AI Hit Screening</h2>
+                <p class="section-description">Massive virtual screening to find the best candidate molecules from millions of options.</p>
+
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-filter"></i> Purpose:</h4>
+                        <p>Evaluate millions of potential drug molecules against your target protein in minutes using GNN (Graph Neural Network) inference.</p>
+                    </div>
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-microchip"></i> AI Logic:</h4>
+                        <p>The system computes spatial compatibility and electrostatic interactions to assign a 'Match Score'. Higher scores indicate a stronger binding potential.</p>
+                    </div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/HITSCREENING.png" alt="Hit Screening Session">
+                    <div class="image-desc">Active Session: High-throughput virtual screening results and match scores.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>Screening Workflow:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span><strong>Select Library:</strong> Choose from Enamine, Zinc20, or your custom internal library.</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span><strong>Define Thresholds:</strong> Set the minimum binding score (e.g., >0.85) to filter candidates.</span></div>
+                    <div class="step-item"><div class="step-num">3</div><span><strong>Execute Scan:</strong> Click "Start AI Screening" to trigger the cloud compute cluster.</span></div>
+                    <div class="step-item"><div class="step-num">4</div><span><strong>Export Hits:</strong> Select the top-performing molecules and send them to the <em>Molecular Docking</em> module for physics-based validation.</span></div>
+                </div>
+            </section>
+
+            <!-- 6. Molecular Docking -->
+            <section id="docking" class="section-block">
+                <h2 class="section-title"><i class="fas fa-link"></i> 06. Molecular Docking</h2>
+                <p class="section-description">Physics-based simulation of how a molecule fits into a protein pocket.</p>
+
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-key"></i> Simplification:</h4>
+                        <p>Think of this as testing a "Key" (Medicine) in a "Lock" (Protein) to see if it turns perfectly.</p>
+                    </div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/molecular_docking_input.png" alt="Docking Input">
+                    <div class="image-desc">Input: Enter the SMILES code (chemical string) and click RUN DOCKING.</div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/molecular_docking_complete.png" alt="Docking Complete">
+                    <div class="image-desc">Result: The Binding Energy (Potency) is displayed. Lower numbers are better.</div>
+                </div>
+            </section>
+
+            <!-- 7. Lead Optimization -->
+            <section id="lead-opt" class="section-block">
+                <h2 class="section-title"><i class="fas fa-magic"></i> 07. Lead Optimization</h2>
+                <p class="section-description">Generative AI models that "evolve" a molecule to make it more potent.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/lead_optimization_input.png" alt="Optimization">
+                    <div class="image-desc">Evolution Setup: The AI will generate new versions of your starting molecule.</div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/lead_optimization_results.png" alt="Optimization Chart">
+                    <div class="image-desc">Progress Tracking: Watch the Potency Chart go up as the AI improves the lead.</div>
+                </div>
+            </section>
+
+            <!-- 8. ADMET Prediction -->
+            <section id="admet" class="section-block">
+                <h2 class="section-title"><i class="fas fa-shield-virus"></i> 08. ADMET Prediction</h2>
+                <p class="section-description">Checking if the medicine is safe for the human body and if it can be absorbed.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/admet_prediction_complete.png" alt="ADMET Radar">
+                    <div class="image-desc">Safety Profile: The Radar chart shows absorption, safety, and toxicity levels.</div>
+                </div>
+            </section>
+
+            <!-- 9. Preformulation -->
+            <section id="preform" class="section-block">
+                <h2 class="section-title"><i class="fas fa-clipboard-check"></i> 09. Preformulation</h2>
+                <p class="section-description">Analyzing the physical properties like solubility and stability.</p>
+
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-vial"></i> Stability Assessment:</h4>
+                        <p>Before a drug is made into a pill, we must know if it will dissolve in water or break down in the heat. This session simulates those physical properties.</p>
+                    </div>
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-chart-line"></i> Thermodynamic Profiling:</h4>
+                        <p>Calculation of LogP, pKa, and solubility constants (LogS) across a pH range of 1.0 to 9.0.</p>
+                    </div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/PREFORMULATION.png" alt="Preformulation Working">
+                    <div class="image-desc">Working Session: Structural stability analysis and physical property profiling.</div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/PERFORMULATION-2.png" alt="Preformulation Analysis">
+                    <div class="image-desc">Extended Analysis: Solvent compatibility and degradation studies.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>Analyzing Results:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span>Review the <strong>Solubility Curve</strong> to identify optimal delivery methods.</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span>Check the <strong>Hygroscopicity Index</strong> to determine storage requirements.</span></div>
+                    <div class="step-item"><div class="step-num">3</div><span>Use the "Compare Leads" button to see which candidate has the best physical profile for manufacturing.</span></div>
+                </div>
+            </section>
+
+            <!-- 10. Formulation Design -->
+            <section id="formulation" class="section-block">
+                <h2 class="section-title"><i class="fas fa-mortar-pestle"></i> 10. Formulation Design</h2>
+                <p class="section-description">Designing the final pill or injection using AI-optimized ingredient ratios.</p>
+
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-mortar-pestle"></i> Recipe Building:</h4>
+                        <p>Creating the perfect 'recipe' for the medicine. This ensures the drug is delivered to the right part of the body at the right time.</p>
+                    </div>
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-atom"></i> Excipient Compatibility:</h4>
+                        <p>AI-driven selection of binders, disintegrants, and lubricants based on the chemical scaffold of the lead molecule.</p>
+                    </div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/FORMULATION.png" alt="Formulation Design Session">
+                    <div class="image-desc">Optimization Session: AI-calculated ingredient ratios and stability predictions.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>Design Steps:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span>Enter the <strong>Target Dosage</strong> (e.g., 50mg) and preferred form (Tablet/Capsule).</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span>Run <strong>In-Silico Dissolution</strong> testing to predict drug release patterns.</span></div>
+                    <div class="step-item"><div class="step-num">3</div><span>Adjust <strong>Excipient Ratios</strong> manually or let the AI optimize for maximum shelf-life.</span></div>
+                </div>
+            </section>
+
+            <!-- 11. Blinded Results -->
+            <section id="blinded" class="section-block">
+                <h2 class="section-title"><i class="fas fa-mask"></i> 11. Blinded Results</h2>
+                <p class="section-description">A secure area where molecules are anonymized to prevent research bias.</p>
+
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-user-secret"></i> Unbiased Review:</h4>
+                        <p>To ensure scientists aren't biased, we hide the names of the medicines. We only look at how well they work.</p>
+                    </div>
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-balance-scale"></i> Statistical Significance:</h4>
+                        <p>Comparison of p-values and confidence intervals across blinded candidate groups A, B, and C.</p>
+                    </div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/bLINDEDSCREEN.png" alt="Blinded Results Working">
+                    <div class="image-desc">Working Comparison: Anonymized performance metrics for unbiased lead selection.</div>
+                </div>
+
+                <div class="action-steps">
+                    <h3>How to interpret results:</h3>
+                    <div class="step-item"><div class="step-num">1</div><span>Locate the <strong>Correlation Matrix</strong> to see which blinded groups perform similarly.</span></div>
+                    <div class="step-item"><div class="step-num">2</div><span>Assign a <strong>Priority Score</strong> to each anonymized candidate.</span></div>
+                    <div class="step-item"><div class="step-num">3</div><span>Click "Reveal Identity" only after the final selection committee has voted on the data.</span></div>
+                </div>
+            </section>
+
+            <!-- 12. Robotic Validation -->
+            <section id="wetlab" class="section-block">
+                <h2 class="section-title"><i class="fas fa-robot"></i> 12. Robotic Validation</h2>
+                <p class="section-description">Moving from the computer to the real world: Generating scripts for laboratory robots.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/robotic_validation_input.png" alt="Robotic Lab">
+                    <div class="image-desc">Hardware Setup: Configuring the experiment name and type for the robotic arm.</div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/robotic_validation_code.png" alt="Robotic Code">
+                    <div class="image-desc">Outcome: The AI generates the Python code that tells the robot exactly what to do.</div>
+                </div>
+            </section>
+
+            <!-- 13. Reports -->
+            <section id="reports" class="section-block">
+                <h2 class="section-title"><i class="fas fa-file-pdf"></i> 13. Discovery Reports</h2>
+                <p class="section-description">How to download and share your final intelligence reports.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/report_button.png" alt="Report Button">
+                    <div class="image-desc">Exporting Data: Click the "Export Report" button on the Target Explorer or Dashboard.</div>
+                </div>
+
+                <div class="clarity-box">
+                    <div class="clarity-text">
+                        <h4><i class="fas fa-file-alt"></i> What's inside the report?</h4>
+                        <p>The report includes all 3D snapshots, binding energies, safety scores, and the generated robotic protocol.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 14. Fast Actions -->
+            <section id="shortcuts" class="section-block">
+                <h2 class="section-title"><i class="fas fa-bolt"></i> 14. Workflow Shortcuts</h2>
+                <p class="section-description">Special buttons that let you jump between different parts of the platform instantly.</p>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/validate_wetlab.png" alt="Shortcut to Lab">
+                    <div class="image-desc">Jump to Lab: From Lead Optimization, click "Validate in Wet Lab" to skip the manual setup.</div>
+                </div>
+
+                <div class="image-showcase">
+                    <img src="/static/images/screenshots/wetlab_dock.png" alt="Shortcut to Docking">
+                    <div class="image-desc">Jump to Docking: From the Lab, click "Send to Docking" to re-verify the binding fit.</div>
+                </div>
+            </section>
+
+            <div class="footer-cta">
+                <h2>Still have questions?</h2>
+                <p>Our discovery architects are available to help you with deep-tech queries and platform configuration.</p>
+                <a href="mailto:discovery@genquatis.com">discovery@genquatis.com</a>
+                <p style="margin-top: 4rem; opacity: 0.6; font-size: 0.9rem;">&copy; 2026 GenQuantis Discovery Platform • COMPLETE Integrated Manual v4.0</p>
+            </div>
+        </main>
+    </div>
+
+    <nav class="mobile-nav-bar">
+        <a href="dashboard.html" class="mobile-nav-item">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="javascript:history.back()" class="mobile-nav-item">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back</span>
+        </a>
+        <a href="target_explorer.html" class="mobile-nav-item">
+            <i class="fas fa-microscope"></i>
+            <span>Discovery</span>
+        </a>
+    </nav>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    const link = document.querySelector(`.nav-link[href="#${id}"]`);
+                    if (link) {
+                        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                    }
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.section-block').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>

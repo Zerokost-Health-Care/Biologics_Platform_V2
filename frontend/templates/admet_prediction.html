@@ -1,297 +1,478 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADMET Intelligence | Biologics Discovery</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/main.js?v=1.0.2"></script>
-    <script src="/static/js/chatbot.js?v=1.0.2" defer></script>
-    <script>
-        // Emergency fallback if main.js fails to expose functions globally
-        function safeGoToPreformulation() {
-            if (typeof window.goToPreformulation === 'function') {
-                window.goToPreformulation('ADMET-' + Date.now().toString().slice(-4), document.getElementById('smiles').value);
-            } else {
-                console.error("Critical: window.goToPreformulation still missing. Retrying redirect...");
-                const compoundId = 'ADMET-' + Date.now().toString().slice(-4);
-                const smiles = document.getElementById('smiles').value;
-                const url = `preformulation_analysis.html?compound_id=${encodeURIComponent(compoundId)}&smiles=${encodeURIComponent(smiles)}&auto_run=true`;
-                window.location.href = url;
+    <title>ADMET Prediction | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v221">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        .admet-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .admet-grid {
+                grid-template-columns: 1fr;
             }
         }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: var(--background-dark); color: var(--text-main); }
-        .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid var(--border-color); }
-        .card-neo { background: var(--background-card); border: 1px solid var(--border-color); }
-        .status-pill { padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-        .pass { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .fail { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #115e59;
+            margin: 0.5rem 0;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .radar-container {
+            height: 450px;
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+        }
+
+        .ai-insight {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #065f46;
+        }
+
+        @media (max-width: 991px) {
+            .admet-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .premium-card {
+                min-width: 100% !important;
+            }
+
+            .radar-container {
+                height: 350px !important;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            div[style*="justify-content: space-between"] {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        #info-trigger:hover {
+            background: #10b981;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
     </style>
 </head>
-<body class="min-h-screen">
+
+<body>
     <div class="app-container">
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-chart-pie" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">ADMET Core</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● DEEPTOX GNN ACTIVE</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Unified Sidebar -->
         <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-                <li class="nav-item" style="margin-top: auto;"><a href="#" onclick="logout()">Logout</a></li>
-            </ul>
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item active"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
         </aside>
 
-        <main class="main-content">
-            <header class="top-bar glass p-6 rounded-2xl mb-8 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="h-10 w-10 bg-gradient-to-tr from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-vial-circle-check text-white"></i>
+        <main class="main-content fade-in">
+            <div class="ghost-text">PROPERTIES</div>
+
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-dna" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Pharmacokinetic Profiling</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Predict Absorption, Distribution,
+                        Metabolism, Excretion, and Toxicity via Graph Neural Networks.</p>
+                </div>
+            </section>
+
+            <div class="admet-grid">
+                <!-- Molecule Input -->
+                <div class="premium-card">
+                    <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 1rem; font-weight: 800;">CANDIDATE
+                        INPUT</h3>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label
+                            style="display: block; font-size: 0.75rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem;">SMILES
+                            NOTATION</label>
+                        <input type="text" id="smiles-input" value="CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
+                            style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid #e2eef1; font-family: monospace; font-size: 0.85rem; color: #1e293b;">
                     </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight">ADMET Intelligence</h1>
-                        <p class="text-[10px] text-slate-400 font-mono">PHARMACOKINETIC ORACLE V2.1</p>
+
+                    <button id="run-btn" class="btn-launch"
+                        style="width: 100%; justify-content: center; padding: 1rem;">
+                        <i class="fas fa-bolt"></i> RUN ADMET PROFILING
+                    </button>
+
+                    <div id="status-log" style="margin-top: 1.5rem; display: none;">
+                        <div style="font-size: 0.75rem; color: #4d8b85; margin-bottom: 0.5rem; font-weight: 700;">
+                            PROFILING LOG</div>
+                        <div id="log-content"
+                            style="background: #f8fafc; padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; font-family: monospace; color: #475569;">
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">ORACLE_STATUS: ONLINE</span>
-                    <a href="/dashboard" class="text-sm font-medium hover:text-emerald-400 transition">Dashboard</a>
-                </div>
-            </header>
-        <!-- Input Section -->
-        <section class="glass p-8 rounded-3xl">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
-                <div class="lg:col-span-3">
-                    <h2 class="text-2xl font-bold mb-2">Molecular Input</h2>
-                    <p class="text-slate-400 text-sm mb-6">Enter a SMILES string to analyze multi-organ toxicity and absorption profiles.</p>
-                    <div class="relative">
-                        <input type="text" id="smiles" value="CN1C=NC2=C1C(=O)N(C(=O)N2C)C" 
-                               class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl p-6 text-lg font-mono focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-2xl">
-                        <button onclick="runAnalysis()" id="analyzeBtn" 
-                                class="absolute right-3 top-3 bottom-3 px-8 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-xl font-bold hover:scale-[1.02] active:scale-95 transition shadow-lg shadow-emerald-900/20">
-                            Predict Profile
+
+                <!-- Results Dashboard -->
+                <div id="results-area" style="display: none; margin-top: 2rem;">
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <!-- Radar Visualization -->
+                        <div class="premium-card" style="flex: 1; min-width: 400px; overflow: hidden;">
+                            <h3 style="margin-bottom: 1rem; color: #115e59; font-size: 1rem; font-weight: 800;">ADMET
+                                RADAR</h3>
+                            <div id="radar-chart"
+                                style="width: 100%; height: 400px; display: flex; justify-content: center;"></div>
+                        </div>
+
+                        <!-- Key Metrics -->
+                        <div class="premium-card" style="flex: 1; min-width: 400px; overflow: hidden;">
+                            <h3 style="margin-bottom: 1rem; color: #115e59; font-size: 1rem; font-weight: 800;">AI
+                                INTERPRETATION</h3>
+                            <div id="interpretation" class="ai-insight"></div>
+
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-label">LogP (Lipophilicity)</div>
+                                    <div id="metric-logp" class="metric-value">0.0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">H-Bond Donors</div>
+                                    <div id="metric-hbd" class="metric-value">0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">Mol Weight</div>
+                                    <div id="metric-mw" class="metric-value">0.0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-label">TPSA</div>
+                                    <div id="metric-tpsa" class="metric-value">0.0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rule Compliance -->
+                    <div class="premium-card"
+                        style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 1rem; font-weight: 800;">
+                                DRUG-LIKENESS FILTERS</h3>
+                            <div style="display: flex; gap: 2rem;">
+                                <div id="rule-lipinski" class="badge"
+                                    style="padding: 0.75rem 1.5rem; font-size: 0.85rem;">LIPINSKI RULE OF 5</div>
+                                <div id="rule-veber" class="badge" style="padding: 0.75rem 1.5rem; font-size: 0.85rem;">
+                                    VEBER CRITERIA</div>
+                                <div id="rule-lead" class="badge" style="padding: 0.75rem 1.5rem; font-size: 0.85rem;">
+                                    LEAD-LIKENESS</div>
+                            </div>
+                        </div>
+                        <button onclick="sendToPreformulation()" class="btn-launch"
+                            style="background: #115e59; border-color: #115e59;">
+                            <i class="fas fa-arrow-right"></i> PROCEED TO PREFORMULATION
                         </button>
                     </div>
                 </div>
-                <div class="lg:col-span-1 hidden lg:block">
-                    <div class="card-neo p-6 rounded-2xl text-center space-y-2">
-                        <i class="fas fa-shield-virus text-4xl text-emerald-400 mb-2"></i>
-                        <p class="text-xs text-slate-400 uppercase tracking-widest">Ensemble Confidence</p>
-                        <div class="text-3xl font-bold" id="confidenceScore">94.2%</div>
-                    </div>
-                </div>
             </div>
-        </section>
-
-        <!-- Results Grid -->
-        <div id="resultsContent" class="grid grid-cols-1 lg:grid-cols-3 gap-8 opacity-0 transition-opacity duration-500">
-            <!-- Physicochemical -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
-                        <i class="fas fa-microscope text-emerald-500"></i>
-                        Lipinski Rules
-                    </h3>
-                    <div id="propList" class="space-y-4">
-                        <!-- Properties will be injected here -->
-                    </div>
-                </div>
-
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-lg font-bold mb-4">Radar: Pharmacokinetcs</h3>
-                    <canvas id="radarChart" height="300"></canvas>
-                </div>
-            </div>
-
-            <!-- ADMET Breakdown -->
-            <div class="lg:col-span-2 space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Absorption -->
-                    <div class="card-neo p-6 rounded-3xl">
-                        <h4 class="text-slate-400 font-bold text-sm uppercase mb-4 tracking-tighter">Absorption & Distribution</h4>
-                        <div class="space-y-4" id="absDistContent">
-                            <!-- Injected -->
-                        </div>
-                    </div>
-                    <!-- Toxicity -->
-                    <div class="card-neo p-6 rounded-3xl border-red-500/10">
-                        <h4 class="text-red-400/80 font-bold text-sm uppercase mb-4 tracking-tighter">Safety & Toxicity</h4>
-                        <div class="space-y-4" id="toxContent">
-                            <!-- Injected -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass p-8 rounded-3xl flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold mb-2">Scientific Interpretation</h3>
-                        <p id="interpretation" class="text-slate-400 leading-relaxed text-sm italic">
-                            The molecule shows moderate lipophilicity with high probability of blood-brain barrier penetration. CYP inhibition profiles suggest minimal drug-drug interaction risks.
-                        </p>
-                    </div>
-                    <button onclick="safeGoToPreformulation()" 
-                            class="ml-6 px-6 py-3 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-xl font-bold hover:bg-indigo-500 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
-                        Proceed to Preformulation <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        let radar = null;
-        const HOST = 'http://127.0.0.1:8000';
-
-        // Initialize from URL params
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('smiles')) document.getElementById('smiles').value = params.get('smiles');
-            
-            if (params.get('auto_run') === 'true') {
-                setTimeout(runAnalysis, 500);
-            }
-        });
-
-        async function runAnalysis() {
-            const smiles = document.getElementById('smiles').value;
-            const btn = document.getElementById('analyzeBtn');
-            const content = document.getElementById('resultsContent');
-            
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-circle-notch animate-spin"></i>`;
-            
-            try {
-                const response = await fetch(`${HOST}/api/admet/predict?smiles=${encodeURIComponent(smiles)}`, { method: 'POST' });
-                if (!response.ok) throw new Error("Server responded with an error");
-                
-                const data = await response.json();
-                
-                if (data.status.includes('Failed')) {
-                    alert('⚠️ Calculation Failed: ' + data.status);
-                    content.style.opacity = '0';
-                    return;
-                }
-
-                if (!data.results) {
-                    alert('⚠️ Error: No results returned from server.');
-                    return;
-                }
-
-                renderResults(data.results);
-                content.style.opacity = '1';
-                
-            } catch (err) {
-                console.error(err);
-                alert('🔴 Connection Error: Could not reach the AI Oracle. Please ensure the backend is running at ' + HOST);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `Predict Profile`;
-            }
-        }
-
-        function renderResults(res) {
-            // Update Confidence UI
-            document.getElementById('confidenceScore').innerText = res.confidence + '%';
-            document.getElementById('interpretation').innerText = res.interpretation;
-
-            // Engine Badges
-            if (res.ai_engines_used) {
-                const engineHtml = res.ai_engines_used.map(e => 
-                    `<span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700 font-mono">${e}</span>`
-                ).join(' ');
-                document.getElementById('interpretation').innerHTML += `<div class="mt-4 flex flex-wrap gap-2">${engineHtml}</div>`;
-            }
-
-            // Lipinski
-            const propList = document.getElementById('propList');
-            const props = res.properties;
-            const compliance = res.drug_likeness;
-            
-            propList.innerHTML = `
-                <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-lg">
-                    <span class="text-sm text-slate-400">Molecular Weight</span>
-                    <span class="font-bold">${props.MolWt} g/mol</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-lg">
-                    <span class="text-sm text-slate-400">LogP (Lipophilicity)</span>
-                    <span class="font-bold">${props.LogP}</span>
-                </div>
-                <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-lg">
-                    <span class="text-sm text-slate-400">TPSA</span>
-                    <span class="font-bold">${props.TPSA} Å²</span>
-                </div>
-                <div class="pt-4 border-t border-slate-800 mt-4 flex justify-between items-center">
-                    <span class="text-sm font-bold">Rule of 5 Compliance</span>
-                    <span class="status-pill ${compliance.Lipinski_Pass ? 'pass' : 'fail'}">${compliance.Lipinski_Pass ? 'PASSED' : 'FAILED'}</span>
-                </div>
-            `;
-
-            // ADMET CONTENT
-            const metrics = res.admet_metrics;
-            document.getElementById('absDistContent').innerHTML = `
-                <div class="flex justify-between text-sm"><span>BBBP Oracle (Trained):</span> <span class="font-bold text-emerald-400">${metrics.BBBP_Model_Result}</span></div>
-                <div class="flex justify-between text-sm"><span>LogS Solubility:</span> <span class="font-bold text-blue-400">${metrics.Solubility_LogS}</span></div>
-                <div class="flex justify-between text-sm"><span>ClinTox FDA Model:</span> <span class="font-bold text-slate-300">${metrics.ClinTox_FDA_Approval}</span></div>
-            `;
-            
-            document.getElementById('toxContent').innerHTML = `
-                <div class="flex justify-between text-sm"><span>hERG Toxicity (GNN):</span> <span class="font-bold ${metrics.HERG_Toxicity_GNN === 'Minimal' ? 'text-emerald-400' : 'text-red-400'}">${metrics.HERG_Toxicity_GNN}</span></div>
-                <div class="flex justify-between text-sm"><span>Tox21 Hepatotoxicity:</span> <span class="font-bold text-yellow-500">${metrics.Tox21_Hepatotoxicity}</span></div>
-                <div class="flex justify-between text-sm"><span>DeepTox Consensus:</span> <span class="font-bold text-emerald-500">OPTIMAL</span></div>
-            `;
-
-            updateRadar(res.radar_scores);
-        }
-
-        function updateRadar(metrics) {
-            if (radar) radar.destroy();
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            radar = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Solubility', 'Absorption', 'Safety', 'Clearance', 'Metabolism'],
-                    datasets: [{
-                        label: 'ADMET Score',
-                        data: [
-                            metrics.Solubility, 
-                            metrics.Absorption, 
-                            metrics.Safety, 
-                            metrics.Clearance, 
-                            metrics.Metabolism
-                        ],
-                        backgroundColor: 'rgba(52, 211, 153, 0.2)',
-                        borderColor: '#10b981',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 10,
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            pointLabels: { color: '#94a3b8' }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-    </script>
         </main>
     </div>
+
+    <!-- Floating Info Icon -->
+    <button id="info-trigger"
+        style="position: fixed; right: 25px; top: 100px; background: #115e59; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none;">
+        <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <!-- Info Overlay -->
+    <div id="info-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.98); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(15px); animation: fadeIn 0.3s ease; padding: 30px;">
+        <div
+            style="position: relative; max-width: 90%; max-height: 90vh; width: fit-content; background: #020617; padding: 8px; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); transform: scale(0.9); animation: scaleUp 0.3s ease forwards; display: flex; flex-direction: column; align-items: center;">
+            <button id="info-close-top"
+                style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 10; border: 2px solid #020617;">&times;</button>
+
+            <div
+                style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px 10px 0 10px;">
+                <img src="/static/images/ADMET Intel.png"
+                    style="max-width: 100%; max-height: 70vh; height: auto; width: auto; object-fit: contain; display: block; border-radius: 4px;">
+            </div>
+
+            <div style="padding: 1.5rem 0; width: 100%; display: flex; justify-content: center;">
+                <button id="info-minimize-btn"
+                    style="background: #115e59; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 40px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <i class="fas fa-compress-alt"></i> MINIMIZE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script>
+        let currentSmiles = "";
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar logic handled by main.js
+            const username = localStorage.getItem('user_fullname') || localStorage.getItem('full_name') || 'Researcher';
+            const userDisplay = document.getElementById('nav-username');
+            if (userDisplay) userDisplay.innerText = username;
+
+            document.getElementById('run-btn').onclick = runPrediction;
+
+            // Handle URL params (from optimization or screening)
+            const urlParams = new URLSearchParams(window.location.search);
+            const smiles = urlParams.get('smiles');
+            if (smiles) {
+                document.getElementById('smiles-input').value = smiles;
+                runPrediction();
+            }
+
+            // Info Overlay Logic
+            const trigger = document.getElementById('info-trigger');
+            const overlay = document.getElementById('info-overlay');
+            const closeTop = document.getElementById('info-close-top');
+            const minimizeBtn = document.getElementById('info-minimize-btn');
+
+            if (trigger) {
+                trigger.addEventListener('click', () => {
+                    overlay.style.display = 'flex';
+                });
+            }
+
+            const hideOverlay = () => {
+                overlay.style.display = 'none';
+            };
+
+            if (closeTop) closeTop.addEventListener('click', hideOverlay);
+            if (minimizeBtn) minimizeBtn.addEventListener('click', hideOverlay);
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) hideOverlay();
+            });
+        });
+
+        async function runPrediction() {
+            const smiles = document.getElementById('smiles-input').value;
+            const btn = document.getElementById('run-btn');
+            const logArea = document.getElementById('status-log');
+            const logContent = document.getElementById('log-content');
+            const resultsArea = document.getElementById('results-area');
+
+            if (!smiles) return alert("Please enter a SMILES string.");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-microchip fa-spin"></i> GNN INFERENCE...';
+            logArea.style.display = 'block';
+            logContent.innerHTML = '> INITIALIZING CONVGRAPH-V3 ENGINE...<br>> EXTRACTING MOLECULAR FINGERPRINTS...';
+
+            try {
+                const res = await fetch(`/api/admet/predict?smiles=${encodeURIComponent(smiles)}`, {
+                    method: 'POST'
+                });
+                const job = await res.json();
+
+                if (job.status === 'Completed') {
+                    currentSmiles = smiles;
+                    displayResults(job.results);
+                    resultsArea.style.display = 'block';
+                    btn.innerHTML = '<i class="fas fa-check"></i> PROFILING COMPLETE';
+                } else {
+                    throw new Error(job.status);
+                }
+            } catch (e) {
+                alert("Prediction Failed: " + e.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function sendToPreformulation() {
+            if (!currentSmiles) return;
+            window.location.href = `preformulation_analysis.html?smiles=${encodeURIComponent(currentSmiles)}`;
+        }
+
+        function displayResults(res) {
+            const scores = res.radar_scores;
+            const props = res.properties;
+
+            // Update Metrics
+            document.getElementById('metric-logp').textContent = props.LogP.toFixed(2);
+            document.getElementById('metric-mw').textContent = props.MolWt.toFixed(1);
+            document.getElementById('metric-hbd').textContent = props.NumHDonors;
+            document.getElementById('metric-tpsa').textContent = props.TPSA.toFixed(1);
+            document.getElementById('interpretation').innerHTML = `<strong>DEEPTOX INSIGHT:</strong> ${res.interpretation}`;
+
+            // Update Badges
+            updateBadge('rule-lipinski', res.drug_likeness.Lipinski_Pass);
+            updateBadge('rule-veber', res.drug_likeness.Veber_Pass);
+            updateBadge('rule-lead', res.drug_likeness.Lead_Likeness);
+
+            // Radar Chart
+            const data = [{
+                type: 'scatterpolar',
+                r: [scores.Solubility, scores.Absorption, scores.Metabolism, scores.Clearance, scores.Safety, scores.Solubility],
+                theta: ['Solubility', 'Absorption', 'Metabolism', 'Clearance', 'Safety', 'Solubility'],
+                fill: 'toself',
+                fillcolor: 'rgba(16, 185, 129, 0.2)',
+                line: { color: '#10b981', width: 3 },
+                marker: { color: '#10b981', size: 8 }
+            }];
+
+            const layout = {
+                polar: {
+                    radialaxis: { visible: true, range: [0, 10], color: '#94a3b8', gridcolor: '#f1f5f9' },
+                    angularaxis: { color: '#475569', font: { weight: 'bold', size: 9 } },
+                    bgcolor: 'rgba(255,255,255,0)'
+                },
+                showlegend: false,
+                margin: { l: 40, r: 40, t: 30, b: 30 },
+                paper_bgcolor: 'rgba(255,255,255,0)',
+                plot_bgcolor: 'rgba(255,255,255,0)',
+                autosize: true,
+                dragmode: false
+            };
+
+            const config = { responsive: true, displayModeBar: false, staticPlot: false };
+            const chartDiv = document.getElementById('radar-chart');
+            Plotly.newPlot(chartDiv, data, layout, config);
+
+            // Force a resize calculation to ensure containment
+            setTimeout(() => { Plotly.Plots.resize(chartDiv); }, 100);
+        }
+
+        function updateBadge(id, pass) {
+            const el = document.getElementById(id);
+            el.className = pass ? 'badge badge-completed' : 'badge badge-running';
+            el.style.background = pass ? '#e0f2f1' : '#fee2e2';
+            el.style.color = pass ? '#10b981' : '#ef4444';
+            el.innerHTML = (pass ? '<i class="fas fa-check"></i> ' : '<i class="fas fa-times"></i> ') + el.innerText.replace(/<i.*i> /, '');
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
 </body>
+
 </html>

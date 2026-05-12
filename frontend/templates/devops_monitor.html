@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Control Center - GenQuantis</title>
+    <link rel="stylesheet" href="../static/css/platform.css?v=devops_v1">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --devops-bg: #05070a;
+            --devops-card: #0c1117;
+            --devops-accent: #10b981;
+            --devops-accent-dim: rgba(16, 185, 129, 0.1);
+            --devops-border: #1e293b;
+            --devops-text: #e2e8f0;
+            --terminal-bg: #020408;
+        }
+
+        body.devops-portal {
+            background-color: var(--devops-bg);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 80%),
+                linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--devops-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .devops-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+
+        .devops-sidebar {
+            background: var(--devops-card);
+            border-right: 1px solid var(--devops-border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .devops-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--devops-accent);
+            letter-spacing: -0.5px;
+        }
+
+        .devops-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .devops-nav-item:hover, .devops-nav-item.active {
+            background: var(--devops-accent-dim);
+            color: var(--devops-accent);
+        }
+
+        .devops-main {
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--devops-card);
+            border: 1px solid var(--devops-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--devops-accent);
+            opacity: 0.3;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-panel {
+            background: var(--devops-card);
+            border: 1px solid var(--devops-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--devops-accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .terminal {
+            background: var(--terminal-bg);
+            border: 1px solid var(--devops-border);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 1rem;
+            height: 400px;
+            overflow-y: auto;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 0.4rem;
+            border-left: 2px solid transparent;
+            padding-left: 0.5rem;
+        }
+
+        .log-entry.INFO { border-color: #10b981; }
+        .log-entry.WARNING { border-color: #f59e0b; }
+        .log-entry.ERROR { border-color: #ef4444; }
+
+        .log-ts { color: #64748b; margin-right: 0.5rem; }
+        .log-user { color: #38bdf8; font-weight: 600; margin-right: 0.5rem; }
+        .log-path { color: #f472b6; }
+
+        .table-dark {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .table-dark th {
+            text-align: left;
+            padding: 0.75rem;
+            color: #64748b;
+            border-bottom: 1px solid var(--devops-border);
+        }
+
+        .table-dark td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .badge-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        /* Performance graph height adjustment */
+        #latencyChart {
+            max-height: 300px;
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 10px #ef4444;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="devops-portal">
+    <div class="devops-container">
+        <aside class="devops-sidebar">
+            <div class="devops-logo">
+                <i class="fas fa-shield-halved"></i>
+                GENQUANTIS OPS
+            </div>
+            
+            <nav style="flex-grow: 1;">
+                <div class="devops-nav-item active" onclick="switchTab('overview')">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard Overview
+                </div>
+                <div class="devops-nav-item" onclick="switchTab('logs')">
+                    <i class="fas fa-list-ul"></i> Live Log Stream
+                </div>
+                <div class="devops-nav-item" onclick="switchTab('performance')">
+                    <i class="fas fa-chart-bar"></i> Performance Analytics
+                </div>
+                <div class="devops-nav-item" onclick="switchTab('users')">
+                    <i class="fas fa-users-cog"></i> User Behavior
+                </div>
+            </nav>
+
+            <div class="devops-nav-item" onclick="location.href='admin_dashboard.html'">
+                <i class="fas fa-arrow-left"></i> Back to Admin
+            </div>
+        </aside>
+
+        <main class="devops-main">
+            <!-- Header Stats -->
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Active Users (24h)</div>
+                    <div class="stat-value" id="stat-users">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg. Latency</div>
+                    <div class="stat-value" id="stat-latency">--ms</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Error Rate</div>
+                    <div class="stat-value" id="stat-errors" style="color: #ef4444;">--%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Server Uptime</div>
+                    <div class="stat-value" id="stat-uptime">99.98%</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="tab-overview">
+                <div class="grid-layout">
+                    <!-- Performance Chart -->
+                    <div class="card-panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fas fa-wave-square"></i> Real-time Latency (ms)</div>
+                        </div>
+                        <canvas id="latencyChart"></canvas>
+                    </div>
+
+                    <!-- Health Check -->
+                    <div class="card-panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fas fa-heartbeat"></i> System Health</div>
+                        </div>
+                        <div id="health-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Logs Preview -->
+                <div class="card-panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fas fa-terminal"></i> Recent Access Logs</div>
+                        <div style="font-size: 0.75rem; color: #64748b;"><span class="live-indicator"></span> LIVE STREAMING</div>
+                    </div>
+                    <div class="terminal" id="terminal-overview"></div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="tab-performance" style="display: none;">
+                <div class="card-panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fas fa-tachometer-alt"></i> Endpoint Performance Breakdown</div>
+                    </div>
+                    <table class="table-dark" id="performance-table">
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Requests</th>
+                                <th>Avg. Latency</th>
+                                <th>Max. Latency</th>
+                                <th>Error Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" style="display: none;">
+                <div class="card-panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fas fa-user-clock"></i> User Engagement Analytics</div>
+                    </div>
+                    <table class="table-dark" id="user-activity-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Requests</th>
+                                <th>Avg Latency</th>
+                                <th>Est. Time Spent</th>
+                                <th>Top Endpoint</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = '/api/devops';
+        const token = localStorage.getItem('token');
+        let latencyChart;
+
+        // --- Tab Management ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.devops-main > div').forEach(div => div.style.display = 'none');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+            document.querySelectorAll('.devops-nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- Fetch Utilities ---
+        async function fetchOpsData(endpoint) {
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Auth failed");
+                return await res.json();
+            } catch (e) {
+                console.error("Ops API Error:", e);
+                return null;
+            }
+        }
+
+        // --- Initialize Dashboard ---
+        async function initDashboard() {
+            // Check auth
+            const role = localStorage.getItem('role');
+            if (!token || role !== 'admin') {
+                alert("Restricted Access: DevOps Portal requires Admin privileges.");
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Initialize Chart
+            const ctx = document.getElementById('latencyChart').getContext('2d');
+            latencyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Latency (ms)',
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        data: [],
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } }
+                    }
+                }
+            });
+
+            // Start Polling
+            pollLogs();
+            pollPerformance();
+            pollHealth();
+            pollUserActivity();
+            
+            // Fast polling for "live" feel on logs
+            setInterval(pollLogs, 3000);
+            // Slower polling for aggregates
+            setInterval(() => {
+                pollPerformance();
+                pollHealth();
+                pollUserActivity();
+            }, 10000);
+        }
+
+        // --- Polling Functions ---
+        async function pollLogs() {
+            const data = await fetchOpsData('/logs/tail?lines=50');
+            if (!data) return;
+
+            const terminal = document.getElementById('terminal-overview');
+            terminal.innerHTML = '';
+            
+            data.lines.forEach(line => {
+                const div = document.createElement('div');
+                div.className = `log-entry ${line.level || 'INFO'}`;
+                
+                if (line.timestamp) {
+                    const time = line.timestamp.split('T')[1].split('.')[0];
+                    const ts = `<span class="log-ts">[${time}]</span>`;
+                    const level = `<span class="log-level" style="font-weight:700; color:var(--devops-accent)">${line.level}:</span>`;
+                    const user = `<span class="log-user">@${line.user || 'anon'}</span>`;
+                    const msg = `<span>${line.message}</span>`;
+                    div.innerHTML = `${ts} ${level} ${user} ${msg}`;
+                } else {
+                    div.textContent = line.raw || JSON.stringify(line);
+                }
+                terminal.appendChild(div);
+            });
+            terminal.scrollTop = terminal.scrollHeight;
+
+            // Update chart data from access logs
+            const latencies = data.lines
+                .filter(l => l.latency_ms)
+                .map(l => l.latency_ms)
+                .slice(-20);
+            
+            if (latencies.length > 0) {
+                latencyChart.data.labels = latencies.map((_, i) => i);
+                latencyChart.data.datasets[0].data = latencies;
+                latencyChart.update('none');
+            }
+        }
+
+        async function pollPerformance() {
+            const data = await fetchOpsData('/logs/performance-report');
+            if (!data) return;
+
+            // Update stats
+            let totalLatency = 0;
+            let count = 0;
+            let totalErrors = 0;
+            
+            const tbody = document.querySelector('#performance-table tbody');
+            tbody.innerHTML = '';
+
+            for (const [endpoint, stats] of Object.entries(data.endpoint_performance)) {
+                totalLatency += stats.avg_latency_ms * stats.total_requests;
+                count += stats.total_requests;
+                totalErrors += (stats.error_rate / 100) * stats.total_requests;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><code>${endpoint}</code></td>
+                    <td>${stats.total_requests}</td>
+                    <td>${stats.avg_latency_ms}ms</td>
+                    <td>${stats.max_latency_ms}ms</td>
+                    <td><span class="badge ${stats.error_rate > 5 ? 'badge-danger' : 'badge-success'}">${stats.error_rate}%</span></td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            const avgLatency = count > 0 ? (totalLatency / count).toFixed(1) : 0;
+            const avgError = count > 0 ? (totalErrors / count * 100).toFixed(1) : 0;
+
+            document.getElementById('stat-latency').textContent = avgLatency + 'ms';
+            document.getElementById('stat-errors').textContent = avgError + '%';
+        }
+
+        async function pollUserActivity() {
+            const data = await fetchOpsData('/logs/user-activity');
+            if (!data) return;
+
+            document.getElementById('stat-users').textContent = data.active_users;
+
+            const tbody = document.querySelector('#user-activity-table tbody');
+            tbody.innerHTML = '';
+
+            for (const [email, stats] of Object.entries(data.users)) {
+                const tr = document.createElement('tr');
+                const topEndpoint = Object.keys(stats.top_endpoints)[0] || '--';
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${email}</td>
+                    <td>${stats.total_requests}</td>
+                    <td>${stats.avg_latency_ms}ms</td>
+                    <td>${stats.estimated_session_minutes} min</td>
+                    <td><code>${topEndpoint}</code></td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        async function pollHealth() {
+            const data = await fetchOpsData('/logs/health');
+            if (!data) return;
+
+            const grid = document.getElementById('health-grid');
+            grid.innerHTML = '';
+
+            for (const [file, info] of Object.entries(data.files)) {
+                const card = document.createElement('div');
+                card.style = "padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;";
+                
+                const status = info.status === 'not_created_yet' ? 'gray' : '#10b981';
+                const fileNameClean = file.replace('platform_', '').replace('.log', '');
+                
+                card.innerHTML = `
+                    <div>
+                        <div style="font-weight:600; text-transform:capitalize;">${fileNameClean} Log</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Size: ${info.size_mb || 0} MB | Entries: ${info.total_entries || 0}</div>
+                    </div>
+                    <div style="width:10px; height:10px; background:${status}; border-radius:50%; box-shadow: 0 0 5px ${status}"></div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        initDashboard();
+    </script>
+</body>
+</html>

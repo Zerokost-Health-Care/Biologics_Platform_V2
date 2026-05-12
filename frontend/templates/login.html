@@ -4,130 +4,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Biologics Discovery Platform</title>
-    <link rel="stylesheet" href="../static/css/style.css">
+    <title>Login - GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .login-container {
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg-dark: #0f172a;
+            --text-main: #115e59;
+            --text-muted: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #f8fafc; 
+            overflow-y: auto; 
+            min-height: 100vh;
+        }
+
+        .split-screen {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .left-hero {
+            flex: 1.2;
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('../static/images/discovery_hero.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5rem;
+            color: white;
+            position: relative;
+        }
+
+        .left-hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .right-auth {
+            flex: 0.8;
+            background: url('../static/images/bio_pattern.png');
+            background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-card) 100%);
+            padding: 2rem;
+            position: relative;
+            background-color: #ffffff;
         }
 
-        .login-card {
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             width: 100%;
-            max-width: 400px;
-            padding: 2.5rem;
-            background-color: var(--background-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 440px;
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.1);
         }
 
-        .login-title {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .form-title {
             font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .form-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
 
+        .toggle-nav {
+            display: flex;
+            background: #f1f5f9;
+            padding: 0.4rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .form-group { margin-bottom: 1.25rem; }
         .form-label {
             display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 0.5rem;
-            font-weight: 500;
         }
 
         .form-input {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-color);
-            background-color: var(--background-dark);
-            color: var(--text-main);
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            border: 2px solid #e2eef1;
+            background: white;
             font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--text-main);
         }
 
         .form-input:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         }
 
-        .btn-primary {
+        .btn-submit {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: var(--border-radius);
+            padding: 1rem;
+            border-radius: 12px;
             border: none;
-            background-color: var(--primary-color);
+            background: var(--primary);
             color: white;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: background-color var(--transition-speed);
+            transition: all 0.2s;
+            margin-top: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
+        .btn-submit:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 991px) {
+            .left-hero { padding: 3rem; }
+            .auth-card { padding: 2rem; }
+        }
+
+        @media (max-width: 768px) {
+            body { overflow: auto; height: auto; }
+            .split-screen { flex-direction: column; height: auto; width: 100%; }
+            .left-hero { 
+                flex: none; 
+                height: 350px; 
+                padding: 2rem; 
+                text-align: center;
+                align-items: center;
+            }
+            .left-hero h1 { 
+                font-size: 1.8rem !important; 
+                margin-bottom: 1rem !important; 
+                width: 100%;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            .left-hero p { 
+                font-size: 0.85rem !important; 
+                margin-bottom: 1.5rem !important; 
+                width: 100%;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .right-auth { 
+                flex: none; 
+                padding: 1rem; 
+                background: white; 
+                min-height: 500px;
+            }
+            .auth-card { 
+                margin-top: -60px; 
+                padding: 2rem 1rem;
+                box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);
+                max-width: 100%;
+                border-radius: 16px;
+            }
+            .left-hero .stats-container {
+                gap: 1rem !important;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .left-hero .stats-container div {
+                border-left: none !important;
+                padding-left: 0 !important;
+                text-align: center;
+                min-width: 120px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="login-card fade-in">
-            <h1 class="login-title">BioPlatform</h1>
-
-            <!-- Toggle Buttons -->
-            <div style="display: flex; justify-content: center; margin-bottom: 2rem; gap: 1rem;">
-                <button id="showLogin" class="btn-toggle active"
-                    style="background:none; border:none; color:var(--text-main); cursor:pointer; font-weight:600; padding-bottom:0.25rem; border-bottom: 2px solid var(--primary-color);">Login</button>
-                <button id="showSignup" class="btn-toggle"
-                    style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding-bottom:0.25rem; border-bottom: 2px solid transparent;">Sign
-                    Up</button>
+    <div class="split-screen">
+        <div class="left-hero">
+            <h1 style="font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem;">The Future of<br><span style="color: var(--primary);">Biologics Discovery</span></h1>
+            <p style="font-size: 1.1rem; opacity: 0.8; max-width: 500px; line-height: 1.6; margin-bottom: 3rem;">
+                Autonomous AI agents and robotic workflows seamlessly integrated to accelerate therapeutic breakthroughs.
+            </p>
+            <div class="stats-container" style="display: flex; gap: 2rem;">
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 800;">1.2k+</div>
+                    <div style="font-size: 0.75rem; opacity: 0.6; text-transform: uppercase;">Molecules Analyzed</div>
+                </div>
+                <div style="border-left: 1px solid rgba(255,255,255,0.2); padding-left: 2rem;">
+                    <div style="font-size: 1.5rem; font-weight: 800;">64.2%</div>
+                    <div style="font-size: 0.75rem; opacity: 0.6; text-transform: uppercase;">Success Rate</div>
+                </div>
             </div>
+        </div>
 
-            <!-- Login Form -->
-            <form id="loginForm">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" id="email" class="form-input" placeholder="scientist@research.org" required>
+        <div class="right-auth">
+            <div class="auth-card fade-in">
+                <div class="brand-logo">
+                    <div class="logo-box">
+                        <i class="fas fa-dna"></i>
+                    </div>
+                    <span style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">GenQuantis Discovery</span>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-input" placeholder="••••••••" required>
-                </div>
-                <div id="loginErrorMsg" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.9rem; display: none;">
-                </div>
-                <button type="submit" class="btn-primary">Sign In</button>
-            </form>
 
-            <!-- Signup Form (Hidden by default) -->
-            <form id="signupForm" style="display: none;">
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" id="signupName" class="form-input" placeholder="Dr. Jane Doe" required>
+                <div id="loginHeader">
+                    <h2 class="form-title">Welcome Back</h2>
+                    <p class="form-subtitle">Enter your credentials to access the laboratory.</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" id="signupEmail" class="form-input" placeholder="scientist@research.org"
-                        required>
+                <div id="signupHeader" style="display: none;">
+                    <h2 class="form-title">Create Account</h2>
+                    <p class="form-subtitle">Join the next generation of therapeutic research.</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+
+                <div class="toggle-nav">
+                    <button id="showLogin" class="toggle-btn active">LOG IN</button>
+                    <button id="showSignup" class="toggle-btn">SIGN UP</button>
                 </div>
-                <div id="signupErrorMsg" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.9rem; display: none;">
-                </div>
-                <div id="signupSuccessMsg"
-                    style="color: #4ade80; margin-bottom: 1rem; font-size: 0.9rem; display: none;">Account created!
-                    Redirecting...</div>
-                <button type="submit" class="btn-primary">Create Account</button>
-            </form>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="email" class="form-input" placeholder="scientist@research.org" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <div id="loginErrorMsg" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.8rem; display: none; font-weight: 600;"></div>
+                    <button type="submit" class="btn-submit">SIGN IN TO PLATFORM</button>
+                </form>
+
+                <!-- Signup Form (Hidden) -->
+                <form id="signupForm" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="signupName" class="form-input" placeholder="Dr. Jane Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="signupEmail" class="form-input" placeholder="scientist@research.org" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Create Password</label>
+                        <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <div id="signupErrorMsg" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.8rem; display: none; font-weight: 600;"></div>
+                    <div id="signupSuccessMsg" style="color: var(--primary); margin-bottom: 1rem; font-size: 0.8rem; display: none; font-weight: 600;">Account created! Redirecting...</div>
+                    <button type="submit" class="btn-submit">INITIALIZE ACCOUNT</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <script>
                 const API_URL = 'http://127.0.0.1:8000/api/auth';
 
@@ -136,23 +335,26 @@
                 const showLoginBtn = document.getElementById('showLogin');
                 const showSignupBtn = document.getElementById('showSignup');
 
+                const loginHeader = document.getElementById('loginHeader');
+                const signupHeader = document.getElementById('signupHeader');
+
                 // Toggle Logic
                 showLoginBtn.addEventListener('click', () => {
                     loginForm.style.display = 'block';
                     signupForm.style.display = 'none';
-                    showLoginBtn.style.borderBottomColor = 'var(--primary-color)';
-                    showLoginBtn.style.color = 'var(--text-main)';
-                    showSignupBtn.style.borderBottomColor = 'transparent';
-                    showSignupBtn.style.color = 'var(--text-muted)';
+                    loginHeader.style.display = 'block';
+                    signupHeader.style.display = 'none';
+                    showLoginBtn.classList.add('active');
+                    showSignupBtn.classList.remove('active');
                 });
 
                 showSignupBtn.addEventListener('click', () => {
                     loginForm.style.display = 'none';
                     signupForm.style.display = 'block';
-                    showSignupBtn.style.borderBottomColor = 'var(--primary-color)';
-                    showSignupBtn.style.color = 'var(--text-main)';
-                    showLoginBtn.style.borderBottomColor = 'transparent';
-                    showLoginBtn.style.color = 'var(--text-muted)';
+                    loginHeader.style.display = 'none';
+                    signupHeader.style.display = 'block';
+                    showSignupBtn.classList.add('active');
+                    showLoginBtn.classList.remove('active');
                 });
 
                 // Login Logic
@@ -176,6 +378,7 @@
                         localStorage.setItem('token', data.access_token);
                         localStorage.setItem('user_id', data.user_id);
                         localStorage.setItem('role', data.role);
+                        localStorage.setItem('full_name', data.full_name || 'Researcher');
 
                         window.location.href = data.role === 'admin' ? 'admin_dashboard.html' : 'dashboard.html';
                     } catch (err) {

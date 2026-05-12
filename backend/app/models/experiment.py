@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any, List
 from beanie import Document, Link
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from .target import Target
 from .user import User
@@ -25,7 +25,7 @@ class Experiment(Document):
     results: Optional[ExperimentResult] = None
     
     created_by: Optional[str] = None # User email or ID
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
 
     class Settings:

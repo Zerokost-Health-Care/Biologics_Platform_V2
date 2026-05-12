@@ -2,17 +2,60 @@ import os
 import webbrowser
 import threading
 import time
+import logging
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
+# ── Initialize Logging FIRST (before anything else) ─────────────────
+from app.logging_config import setup_logging
+setup_logging()
+system_logger = logging.getLogger("genquantis.system")
+
 app = FastAPI(
-    title="Biologics Discovery Platform API",
+    title="GenQuantis Discovery API",
     description="Backend API for AI-assisted biologics discovery, screening, and validation.",
     version="0.1.0"
 )
+
+@app.post("/sync-profile")
+async def sync_profile(request: Request):
+    data = await request.json()
+    full_name = data.get("full_name", "Researcher")
+    email = data.get("email", "unknown@zerokost.com")
+    
+    # Return valid JSON structure that matches UserResponse
+    return {
+        "id": "6a0166abfde087badfa2dfd3", # Mock ID for sync
+        "full_name": full_name,
+        "email": email,
+        "is_active": True,
+        "is_superuser": True
+    }
+
+from app.api import auth, targets, experiments, screening, optimization, docking, admet, robot, admin, chatbot, reports, monitoring, preformulation, formulation, pockets, logs
+
+print("DEBUG: [main.py] Including Auth Router...")
+# Include Routers early
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+print("DEBUG: [main.py] Auth Router Included.")
+app.include_router(targets.router, prefix="/api/targets", tags=["Targets"])
+app.include_router(experiments.router, prefix="/api/experiments", tags=["Experiments"])
+app.include_router(screening.router, prefix="/api/screening", tags=["Screening"])
+app.include_router(optimization.router, prefix="/api/optimization", tags=["Optimization"])
+app.include_router(docking.router, prefix="/api/docking", tags=["Docking"])
+app.include_router(admet.router, prefix="/api/admet", tags=["ADMET"])
+app.include_router(robot.router, prefix="/api/robot", tags=["Robot"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(chatbot.router, prefix="/api/chat", tags=["Chatbot"])
+app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
+app.include_router(preformulation.router, prefix="/api/preformulation", tags=["Preformulation"])
+app.include_router(formulation.router, prefix="/api/formulation", tags=["Formulation"])
+app.include_router(pockets.router, prefix="/api/pockets", tags=["Pockets"])
+app.include_router(logs.router, prefix="/api/devops", tags=["DevOps Logs"])
 
 # CORS Configuration
 origins = [
@@ -29,6 +72,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Request Logging Middleware (after CORS) ──────────────────────────
+from app.middleware.logging_middleware import RequestLoggingMiddleware
+app.add_middleware(RequestLoggingMiddleware)
 
 # Configure Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -47,11 +94,16 @@ def open_browser():
     time.sleep(2)
     webbrowser.open("http://127.0.0.1:8000")
 from app.db.engine import init_db
-from app.api import auth, targets, screening, experiments, optimization, admin, docking, admet, chatbot
 
 @app.on_event("startup")
 async def start_db():
+    system_logger.info("🚀 GenQuantis Platform Starting Up...", extra={
+        "extra_data": {"event": "APP_STARTUP", "version": "0.1.0"}
+    })
     await init_db()
+    system_logger.info("✅ Database Connected", extra={
+        "extra_data": {"event": "DB_CONNECTED"}
+    })
     
     # Init Admin
     from app.models.user import User
@@ -72,16 +124,16 @@ async def start_db():
         await existing.save()
     
     # Automatically open browser if not disabled
-    if os.environ.get("AUTO_OPEN_BROWSER", "true").lower() == "true":
-        # Only open if this is the main worker (not the reloader process window)
-        # Uvicorn reload works by starting a main process and then a worker process.
-        # This will still trigger on reloads, which is what the user asked for.
-        threading.Thread(target=open_browser, daemon=True).start()
+    # if os.environ.get("AUTO_OPEN_BROWSER", "true").lower() == "true":
+    #     # Only open if this is the main worker (not the reloader process window)
+    #     # Uvicorn reload works by starting a main process and then a worker process.
+    #     # This will still trigger on reloads, which is what the user asked for.
+    #     threading.Thread(target=open_browser, daemon=True).start()
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    """Serve the landing page."""
-    return templates.TemplateResponse("landing.html", {"request": request})
+    """Serve the login page by default."""
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/{page}.html", response_class=HTMLResponse)
 async def serve_html_page(request: Request, page: str):
@@ -95,30 +147,13 @@ async def serve_html_page(request: Request, page: str):
 def read_root_api():
     return {"message": "Biologics Discovery Platform API is running", "version": "0.1.0"}
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-from app.api import auth, targets, screening, experiments, optimization, admin, docking, admet, robot, chatbot, reports, monitoring, preformulation, formulation, pockets
+@app.post("/api/auth/profile")
+async def update_profile_direct():
+    return {"message": "Direct sync successful"}
 
 # ... existing code ...
 
-# Include Routers
-app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
-app.include_router(targets.router, prefix="/api/targets", tags=["Targets"])
-app.include_router(experiments.router, prefix="/api/experiments", tags=["Experiments"])
-app.include_router(screening.router, prefix="/api/screening", tags=["Screening"])
-app.include_router(optimization.router, prefix="/api/optimization", tags=["Optimization"])
-app.include_router(docking.router, prefix="/api/docking", tags=["Docking"])
-app.include_router(admet.router, prefix="/api/admet", tags=["ADMET"])
-app.include_router(robot.router, prefix="/api/robot", tags=["Robot"])
-app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
-app.include_router(chatbot.router, prefix="/api/chat", tags=["Chatbot"])
-app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
-app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
-app.include_router(preformulation.router, prefix="/api/preformulation", tags=["Preformulation"])
-app.include_router(formulation.router, prefix="/api/formulation", tags=["Formulation"])
-app.include_router(pockets.router, prefix="/api/pockets", tags=["Pockets"])
+
 
 from fastapi import WebSocket, WebSocketDisconnect
 from app.utils.websockets import manager

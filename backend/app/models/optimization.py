@@ -7,6 +7,7 @@ class OptimizationJob(Document):
     constraints: Dict[str, Any]
     status: str = "Pending"
     results: Optional[Dict[str, Any]] = None
+    created_by: Optional[str] = None
     created_at: datetime = datetime.now()
     completed_at: Optional[datetime] = None
 

@@ -3,103 +3,427 @@
 
 <head>
     <meta charset="UTF-8">
-    <viewport content="width=device-width, initial-scale=1.0">
-        <title>Target Explorer - Biologics Discovery Platform</title>
-        <link rel="stylesheet" href="../static/css/style.css">
-        <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
-        <style>
-            .mol-container {
-                width: 100%;
-                height: 400px;
-                position: relative;
-                background-color: #0f172a;
-                border-radius: 8px;
-                border: 1px solid var(--border-color);
-                margin-top: 1rem;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target Discovery | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v300">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/3dmol@latest/build/3Dmol-min.js"></script>
+    <style>
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #mol-viewer canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .target-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        /* Mobile Specific Fixes */
+        @media (max-width: 991px) {
+            .target-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+                width: 100% !important;
+                overflow-x: hidden !important;
             }
-        </style>
+
+            #viewer-section {
+                position: relative !important;
+                height: 550px !important;
+                order: -1;
+                margin: 1rem 0 !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                clear: both !important;
+            }
+
+            #mol-viewer {
+                width: 100% !important;
+                height: 100% !important;
+                position: relative !important;
+                margin: 0 !important;
+                left: 0 !important;
+                display: block !important;
+            }
+
+            .hero-section {
+                flex-direction: column !important;
+                text-align: center !important;
+                gap: 1rem !important;
+                width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            .hero-text h1 {
+                font-size: 1.8rem !important;
+                word-wrap: break-word !important;
+            }
+
+            .top-navbar span {
+                font-size: 0.9rem !important;
+            }
+
+            .top-navbar .top-navbar-right-info {
+                display: none !important;
+            }
+
+            .premium-card {
+                padding: 1rem !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+                margin-bottom: 1.5rem !important;
+            }
+
+            .target-grid {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .ppi-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .ppi-grid>div {
+                padding: 0.5rem !important;
+            }
+
+            table {
+                display: table !important;
+                width: 100% !important;
+                min-width: 600px !important;
+            }
+
+            .table-wrapper {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                margin-bottom: 1rem;
+                border-radius: 8px;
+                border: 1px solid #e2eef1;
+            }
+
+            .table-wrapper::-webkit-scrollbar {
+                display: block !important;
+                height: 6px !important;
+            }
+
+            .table-wrapper::-webkit-scrollbar-thumb {
+                background: #cbd5e1 !important;
+                border-radius: 3px !important;
+            }
+
+            th,
+            td {
+                white-space: nowrap !important;
+                padding: 0.75rem !important;
+            }
+
+            #viewer-section {
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+
+            #viewer-section .badge,
+            #viewer-section h3 {
+                padding: 1rem 1.25rem 0 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            html,
+            body {
+                overflow-y: auto !important;
+                height: auto !important;
+            }
+
+            .app-container,
+            .main-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0.5rem !important;
+                display: block !important;
+                overflow: visible !important;
+            }
+
+            .main-content {
+                margin-top: 85px !important;
+            }
+
+            /* Push content down to avoid navbar clipping */
+            .top-navbar span {
+                font-size: 0.8rem !important;
+            }
+
+            #nav-username {
+                display: none !important;
+            }
+
+            .premium-card {
+                padding: 0.75rem !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 1.5rem !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            #info-trigger {
+                top: 85px !important;
+                right: 15px !important;
+                width: 42px !important;
+                height: 42px !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <div class="app-container">
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-microscope" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span
+                        style="font-weight: 700; color: #115e59; font-size: clamp(0.8rem, 4vw, 1.2rem); line-height: 1.2;">GenQuantis
+                        <span style="font-weight: 400; opacity: 0.6;">Target Explorer</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● TARGET ENGINE READY</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-                <li class="nav-item" style="margin-top: auto;"><a href="#" onclick="logout()">Logout</a></li>
-            </ul>
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item active"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
         </aside>
 
-        <main class="main-content">
-            <!-- Futuristic Hero -->
-            <div class="glass-card"
-                style="padding: 3rem; text-align: center; margin-bottom: 3rem; background: radial-gradient(circle at center, rgba(14, 165, 233, 0.15) 0%, transparent 70%); border: 1px solid rgba(14, 165, 233, 0.3);">
-                <div style="margin-bottom: 1rem; font-size: 3rem;">🧬</div>
-                <h1 style="font-size: 3rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">Target
-                    Discovery</h1>
-                <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto;">
-                    Access global PDB structures and AlphaFold predictions via the <span
-                        style="color: var(--primary-color);">Neural-Bio Interface</span>.
-                </p>
-            </div>
+        <main class="main-content fade-in">
+            <div class="ghost-text">IDENTIFY</div>
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-microscope" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Target Explorer</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Identify and validate therapeutic
+                        targets using multi-omics data integration.</p>
+                </div>
+            </section>
 
-            <!-- Sequencing Terminal -->
-            <div style="max-width: 800px; margin: 0 auto;">
-                <div class="glass-card"
-                    style="padding: 2px; background: linear-gradient(90deg, #0ea5e9, #10b981); border-radius: 14px;">
-                    <div
-                        style="background: #020617; border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem;">
-                        <span
-                            style="color: #10b981; font-family: monospace; font-size: 1.2rem;">root@bio-cluster:~$</span>
-                        <input type="text" id="target-search-input" placeholder="SCAN_TARGET --gene_symbol "
-                            style="flex: 1; background: transparent; border: none; color: white; font-family: 'Courier New', monospace; font-size: 1.2rem; outline: none; caret-color: #10b981;">
-                        <button id="target-search-btn"
-                            style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 0.5rem 1.5rem; font-family: monospace; cursor: pointer; border-radius: 4px; transition: all 0.2s;">
-                            [EXECUTE]
-                        </button>
+            <div class="target-grid">
+                <!-- Left: Search & Results -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="premium-card">
+                        <h3 style="margin-bottom: 1.5rem; color: #115e59; font-size: 0.9rem; font-weight: 800;">TARGET
+                            ACQUISITION</h3>
+                        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
+                            <input type="text" id="target-search-input" placeholder="e.g. EGFR, 5CWZ"
+                                style="flex: 1; padding: 0.75rem; border-radius: 10px; border: 1px solid #e2eef1; font-weight: 600; color: #115e59;">
+                            <button id="target-search-btn" class="btn-launch"
+                                style="padding: 0.75rem 1.25rem;">GO</button>
+                        </div>
+                        <div
+                            style="font-size: 0.75rem; color: #4d8b85; line-height: 1.6; background: #f0fdfa; padding: 1rem; border-radius: 10px; border: 1px solid #ccfbf1;">
+                            <strong style="color: #115e59; display: block; margin-bottom: 0.5rem;"><i
+                                    class="fas fa-keyboard"></i> SUPPORTED INPUTS:</strong>
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li style="margin-bottom: 0.4rem;">• <strong>UniProt Accession</strong> (e.g., P04637)
+                                </li>
+                                <li style="margin-bottom: 0.4rem;">• <strong>Gene Symbol</strong> (e.g., EGFR, BRCA1)
+                                </li>
+                                <li style="margin-bottom: 0.4rem;">• <strong>PDB Code</strong> (e.g., 5CWZ, 1T46)</li>
+                                <li>• <strong>Common Name</strong> (e.g., Insulin Receptor)</li>
+                            </ul>
+                        </div>
+                        <div id="download-btn-container" style="margin-top: 1.5rem;"></div>
+                    </div>
+
+                    <div id="target-results">
+                        <!-- Dynamic Results Injected Here -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Results Section -->
-            <div id="target-results" class="results-placeholder" style="margin-top: 3rem;">
-                <div style="text-align: center; opacity: 0.5;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/DNA_Orbit_Animated.gif" width="100"
-                        style="filter: grayscale(100%) brightness(50%) hue-rotate(90deg);">
-                    <p style="margin-top: 1rem; font-family: monospace; color: var(--text-muted);">AWAITING SEQUENCE
-                        INPUT...</p>
-                </div>
-            </div>
-
-            <!-- 3D Viewer (Hidden) -->
-            <div id="viewer-section" style="display: none; margin-top: 3rem;" class="fade-in">
-                <div class="glass-card tech-border" style="padding: 0;">
+                <!-- Right: 3D Visualization -->
+                <div id="viewer-section" class="premium-card"
+                    style="display: none; height: 700px; flex-direction: column; position: sticky; top: 80px;">
                     <div
-                        style="background: rgba(0,0,0,0.3); padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin: 0; font-family: monospace; color: var(--primary-color);">>>>
-                            MOLECULAR_VISUALIZATION_MODULE</h3>
-                        <span
-                            style="font-size: 0.8rem; background: #0ea5e9; color: black; padding: 0.25rem 0.5rem; font-weight: bold;">INTERACTIVE</span>
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3
+                            style="color: #115e59; font-size: 0.9rem; font-weight: 800; font-family: 'Fira Code', monospace;">
+                            >>> MOLECULAR_VISUALIZATION_MODULE</h3>
+                        <span class="badge badge-completed">3D_RENDER_ACTIVE</span>
                     </div>
-                    <div id="mol-viewer" class="mol-container"
-                        style="border: none; margin: 0; height: 500px; background: #000;"></div>
+                    <div id="mol-viewer"
+                        style="flex: 1; background: #f8fafc; border-radius: 12px; border: 1px solid #e2eef1; overflow: hidden;">
+                    </div>
                 </div>
             </div>
         </main>
     </div>
-    <script src="../static/js/main.js"></script>
-    <script src="../static/js/target_explorer.js"></script>
-    <script src="../static/js/chatbot.js"></script>
+
+    <!-- Floating Info Icon -->
+    <button id="info-trigger"
+        style="position: fixed; right: 25px; top: 100px; background: #115e59; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none;">
+        <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <!-- Info Overlay -->
+    <div id="info-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.98); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(15px); animation: fadeIn 0.3s ease; padding: 30px;">
+        <div
+            style="position: relative; max-width: 90%; max-height: 90vh; width: fit-content; background: #020617; padding: 8px; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); transform: scale(0.9); animation: scaleUp 0.3s ease forwards; display: flex; flex-direction: column; align-items: center;">
+            <button id="info-close-top"
+                style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 10; border: 2px solid #020617;">&times;</button>
+
+            <div
+                style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px 10px 0 10px;">
+                <img src="/static/images/Target Identification (1).png"
+                    style="max-width: 100%; max-height: 70vh; height: auto; width: auto; object-fit: contain; display: block; border-radius: 4px;">
+            </div>
+
+            <div style="padding: 1.5rem 0; width: 100%; display: flex; justify-content: center;">
+                <button id="info-minimize-btn"
+                    style="background: #115e59; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 40px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <i class="fas fa-compress-alt"></i> MINIMIZE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        #info-trigger:hover {
+            background: #10b981;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const trigger = document.getElementById('info-trigger');
+            const overlay = document.getElementById('info-overlay');
+            const closeTop = document.getElementById('info-close-top');
+            const minimizeBtn = document.getElementById('info-minimize-btn');
+
+            if (trigger) {
+                trigger.addEventListener('click', () => {
+                    overlay.style.display = 'flex';
+                });
+            }
+
+            const hideOverlay = () => {
+                overlay.style.display = 'none';
+            };
+
+            if (closeTop) closeTop.addEventListener('click', hideOverlay);
+            if (minimizeBtn) minimizeBtn.addEventListener('click', hideOverlay);
+
+            // Close on background click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) hideOverlay();
+            });
+        });
+    </script>
+
+    <script>
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
+    <script src="/static/js/main.js?v=force_refresh_v20"></script>
+    <script src="/static/js/target_explorer.js?v=force_refresh_v20"></script>
 </body>
 
 </html>

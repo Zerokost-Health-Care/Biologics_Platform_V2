@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 
 router = APIRouter()
+print("DEBUG: [auth.py] APIRouter initialized and routes defined")
 
 SECRET_KEY = "super-secret-key-change-this"
 
@@ -31,11 +32,16 @@ class UserResponse(BaseModel):
     is_active: bool
     is_superuser: bool
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
 class Token(BaseModel):
     access_token: str
     token_type: str
     user_id: str
     role: str
+    full_name: Optional[str] = None
 
 def create_token(user_id: str, role: str):
     payload = {
@@ -123,7 +129,13 @@ async def login(user_in: UserLogin):
         details={"role": role}
     ).insert()
 
-    return Token(access_token=token, token_type="bearer", user_id=str(user.id), role=role)
+    return Token(
+        access_token=token, 
+        token_type="bearer", 
+        user_id=str(user.id), 
+        role=role,
+        full_name=user.full_name
+    )
 
 @router.get("/users", response_model=List[UserResponse])
 async def get_users():
@@ -146,4 +158,36 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
         full_name=current_user.full_name,
         is_active=current_user.is_active,
         is_superuser=current_user.is_superuser
+    )
+
+@router.post("/profile", response_model=UserResponse)
+async def update_user_me(user_update: UserUpdate, current_user: User = Depends(get_current_user)):
+    print(f"DEBUG: [auth.py] update_user_me CALLED for user: {current_user.email}")
+    
+    # Ensure we are updating the latest instance from the database
+    db_user = await User.get(current_user.id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_update.full_name is not None:
+        print(f"DEBUG: Updating full_name from '{db_user.full_name}' to '{user_update.full_name}'")
+        db_user.full_name = user_update.full_name
+        
+    if user_update.email is not None:
+        if user_update.email != db_user.email:
+            existing = await User.find_one(User.email == user_update.email)
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already in use")
+            print(f"DEBUG: Updating email from '{db_user.email}' to '{user_update.email}'")
+            db_user.email = user_update.email
+    
+    await db_user.save()
+    print(f"DEBUG: Profile successfully persisted to MongoDB for user {db_user.email}")
+    
+    return UserResponse(
+        id=str(db_user.id),
+        email=db_user.email,
+        full_name=db_user.full_name,
+        is_active=db_user.is_active,
+        is_superuser=db_user.is_superuser
     )

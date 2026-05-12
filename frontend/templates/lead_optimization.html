@@ -4,543 +4,600 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lead Optimization - Biologics Discovery Platform</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>Lead Optimization | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v4">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
     <style>
-        .structure-viewer {
-            width: 100%;
-            height: 400px;
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        .optimization-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 991px) {
+            .optimization-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .affinity-hero {
+                padding: 1.5rem;
+                text-align: center;
+            }
+
+            .affinity-hero div[style*="flex-direction: column"] {
+                align-items: center;
+            }
+
+            .affinity-hero div[style*="justify-content: space-between"] {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .affinity-hero #affinity-score {
+                font-size: 3rem;
+            }
+        }
+
+        .research-log {
+            background: #0f172a;
+            color: #4ade80;
+            font-family: 'Fira Code', monospace;
+            padding: 1.25rem;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
+            height: 250px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+            margin-top: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.6;
+        }
+
+        .affinity-hero {
+            background: linear-gradient(135deg, #115e59 0%, #10b981 100%);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(17, 94, 89, 0.15);
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
         }
 
-        .molecular-grid {
+        .affinity-hero::after {
+            content: 'QUANTUM';
             position: absolute;
-            width: 200%;
-            height: 200%;
-            background-image:
-                linear-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(14, 165, 233, 0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
-            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: grid-move 20s linear infinite;
+            top: -30px;
+            right: -30px;
+            font-size: 10rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.03);
+            pointer-events: none;
+            letter-spacing: -5px;
         }
 
-        @keyframes grid-move {
-            0% {
-                transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
-            }
-
-            100% {
-                transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px);
-            }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
         }
 
-        .molecule-placeholder {
-            font-size: 5rem;
-            animation: float 6s ease-in-out infinite;
-            position: relative;
-            z-index: 2;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-20px) rotate(5deg);
-            }
-        }
-
-        .terminal-log {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: #4ade80;
-            background: #000;
-            padding: 1rem;
-            height: 150px;
-            overflow-y: auto;
-            border-radius: 8px;
-            border: 1px solid #334155;
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-        }
-
-        .metric-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+        .comparison-table th {
+            text-align: left;
+            padding: 1.25rem 1rem;
+            background: #f8fafc;
+            color: #4d8b85;
+            font-size: 0.7rem;
+            font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .mutation-badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            background: rgba(244, 63, 94, 0.2);
-            color: #f43f5e;
-            border: 1px solid rgba(244, 63, 94, 0.5);
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-family: 'JetBrains Mono', monospace;
-            margin-right: 0.5rem;
+        .comparison-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
+        .impact-positive {
+            color: #10b981;
+            font-weight: 800;
+        }
+
+        .impact-negative {
+            color: #ef4444;
+            font-weight: 800;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.9);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        #info-trigger:hover {
+            background: #10b981;
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
         }
     </style>
 </head>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-flask" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Lead Optimization</span></span>
+                </div>
+            </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div
+                    style="color: #10b981; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-circle" style="font-size: 0.5rem;"></i> SYSTEM ONLINE
+                </div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Unified Sidebar -->
         <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="pocket_discovery.html">Binding Pocket Discovery</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html">Clinical Candidate Selection</a></li>
-                <li class="nav-item" style="margin-top: auto;"><a href="#" onclick="logout()">Logout</a></li>
-            </ul>
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item active"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">Generative Lead Optimization</h1>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <div style="font-size: 0.875rem; color: var(--text-muted);">Model Engine:</div>
-                    <div
-                        style="padding: 0.25rem 0.75rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; border-radius: 4px; font-size: 0.8rem;">
-                        DiffDock-L (v2.4)</div>
-                    <div
-                        style="padding: 0.25rem 0.75rem; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; border-radius: 4px; font-size: 0.8rem;">
-                        ProteinMPNN</div>
-                </div>
-            </div>
-
-            <div class="grid" style="grid-template-columns: 1fr 300px; gap: 2rem;">
-                <!-- Main Visualization Area -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-
-                    <!-- 3D Viewer -->
-                    <div class="glass-card tech-border" style="padding: 1rem;">
-                        <div class="card-header"
-                            style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                            <h3 class="card-title">🔬 Molecular Binding Simulation</h3>
-                            <span style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--warning);"
-                                id="sim-status">WAITING FOR INPUT</span>
-                        </div>
-                        <div class="structure-viewer" id="viewer-container">
-                            <div class="molecular-grid"></div>
-                            <div class="molecule-placeholder">🧪</div>
-                            <div
-                                style="position: absolute; bottom: 1rem; left: 1rem; font-family: 'JetBrains Mono'; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                                ROT X: 45° | ROT Y: 12° | ZOOM: 100%
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Analysis Charts -->
-                    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <div class="glass-card" style="padding: 1.5rem;">
-                            <h3 class="card-title" style="margin-bottom: 1rem;">Binding Residence Time</h3>
-                            <div id="binding-chart" style="width: 100%; height: 200px;"></div>
-                        </div>
-                        <div class="glass-card" style="padding: 1.5rem;">
-                            <h3 class="card-title" style="margin-bottom: 1rem;">Stability Score (ΔG)</h3>
-                            <div id="stability-chart" style="width: 100%; height: 200px;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Controls Sidebar -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-
-                    <!-- Configuration Panel -->
-                    <div class="glass-card" style="padding: 1.5rem;">
-                        <h3 class="card-title" style="margin-bottom: 1.5rem;">Engine Configuration</h3>
-
-                        <div style="margin-bottom: 1.5rem;">
-                            <label
-                                style="display: block; color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Target
-                                ID</label>
-                            <input type="text" id="opt-target" value="TRG-8821"
-                                style="width: 100%; padding: 0.75rem; background: rgba(15,23,42,0.5); border: 1px solid var(--border-color); color: white; border-radius: 6px;">
-                        </div>
-
-                        <div style="margin-bottom: 1.5rem;">
-                            <label
-                                style="display: block; color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Generative
-                                Strategy</label>
-                            <select id="opt-model"
-                                style="width: 100%; padding: 0.75rem; background: rgba(15,23,42,0.5); border: 1px solid var(--border-color); color: white; border-radius: 6px;">
-                                <option value="ga">Genetic Algorithm (Evolutionary)</option>
-                                <option value="reinvent">REINVENT (AstraZeneca RL-Policy)</option>
-                                <option value="molgpt">MolGPT (Transformer Generation)</option>
-                            </select>
-                            <div style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--primary-color);">
-                                * REINVENT requires high-fidelity property benchmarks.
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 1.5rem;">
-                            <label
-                                style="display: block; color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Optimization
-                                Goal</label>
-                            <select id="opt-goal"
-                                style="width: 100%; padding: 0.75rem; background: rgba(15,23,42,0.5); border: 1px solid var(--border-color); color: white; border-radius: 6px;">
-                                <option value="affinity">Maximize Affinity</option>
-                                <option value="stability">Maximize Stability</option>
-                                <option value="toxicity">Minimize Toxicity</option>
-                            </select>
-                        </div>
-
-                        <button id="run-genai-btn"
-                            style="width: 100%; padding: 1rem; background: var(--gradient-primary); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s;">
-                            <span>✨</span> GENERATE & OPTIMIZE
-                        </button>
-                    </div>
-
-                    <!-- Live Terminal -->
-                    <div class="glass-card" style="padding: 1rem; display: flex; flex-direction: column; height: 100%;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">SYSTEM LOG</span>
-                            <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%;"></span>
-                        </div>
-                        <div id="terminal-output" class="terminal-log">
-                            > System Ready...<br>
-                            > GPU-01: IDLE<br>
-                            > Models Loaded: DiffDock, ProteinMPNN<br>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Results Modal Overlay (Hidden by default) -->
-            <div id="results-overlay"
-                style="display:none; position: fixed; bottom: 2rem; right: 2rem; width: 450px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--primary-color); padding: 1.5rem; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border-left: 4px solid var(--primary-color); animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
+            <section class="hero-section">
                 <div
-                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                    <h3 style="color: white; margin: 0;">Optimization Complete</h3>
-                    <button id="close-results"
-                        style="background: none; border: none; color: var(--text-muted); cursor: pointer;">✕</button>
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-magic" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div>
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Lead Optimization</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Generative evolution for binding
+                        affinity enhancement.</p>
+                </div>
+            </section>
+
+            <div class="optimization-grid">
+                <!-- Left Panel -->
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                    <div class="premium-card"
+                        style="background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                        <h3
+                            style="margin-bottom: 2rem; color: #115e59; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                            Engine Configuration</h3>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label
+                                style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; text-transform: uppercase;">Active
+                                Target</label>
+                            <input type="text" id="target-id" value="EGFR_T790M"
+                                style="width: 100%; padding: 0.9rem; border-radius: 12px; border: 1px solid #e2eef1; font-weight: 600; color: #115e59; font-family: inherit;">
+                        </div>
+
+                        <div style="margin-bottom: 2rem;">
+                            <label
+                                style="display: block; font-size: 0.7rem; font-weight: 800; color: #4d8b85; margin-bottom: 0.5rem; text-transform: uppercase;">Evolution
+                                Strategy</label>
+                            <select id="strategy-select"
+                                style="width: 100%; padding: 0.9rem; border-radius: 12px; border: 1px solid #e2eef1; font-weight: 600; color: #115e59; background: white; font-family: inherit;">
+                                <option value="ga">BitGA Evolutionary</option>
+                                <option value="reinvent">REINVENT (Deep RL)</option>
+                                <option value="molgpt">MolGPT Transformer</option>
+                            </select>
+                        </div>
+
+                        <button id="optimize-btn" class="btn-launch"
+                            style="width: 100%; justify-content: center; padding: 1.1rem; font-weight: 700;">
+                            <i class="fas fa-bolt"></i> RUN OPTIMIZATION
+                        </button>
+
+                        <div id="research-log" class="research-log">
+                            [SYSTEM] Ready for generative evolution session.
+                        </div>
+                    </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <div class="metric-label">New Affinity</div>
-                        <div class="metric-value" style="color: #4ade80;" id="res-affinity">--</div>
+                <!-- Right Panel -->
+                <div style="display: flex; flex-direction: column;">
+                    <div class="affinity-hero">
+                        <div class="affinity-hero-inner">
+                            <div>
+                                <div
+                                    style="font-size: 0.75rem; opacity: 0.8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                                    Optimized Potency</div>
+                                <div id="affinity-score" style="font-size: 4rem; font-weight: 800; margin: 0.5rem 0;">
+                                    -8.10</div>
+                                <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 500;">Predicted pIC50 Score
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div id="improvement-tag"
+                                    style="background: rgba(255,255,255,0.25); padding: 0.6rem 1.2rem; border-radius: 12px; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.05em;">
+                                    BASELINE</div>
+                                <div
+                                    style="margin-top: 0.5rem; font-size: 0.7rem; opacity: 0.7; font-weight: 700; text-transform: uppercase;">
+                                    Potency Delta</div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="metric-label">Improvement</div>
-                        <div class="metric-value" style="color: #facc15;" id="res-improvement">--</div>
-                    </div>
-                </div>
 
-                <div style="margin-bottom: 0.5rem;">
-                    <div class="metric-label" style="margin-bottom: 0.5rem;">Suggested Mutations</div>
-                    <div id="res-mutations">
-                        <!-- badges injected here -->
-                    </div>
-                </div>
+                    <div class="premium-card"
+                        style="background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+                            <h3
+                                style="color: #115e59; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                                Lead Evolution Analysis</h3>
+                            <div id="render-status" class="badge"
+                                style="background: #f0fdf4; color: #16a34a; font-weight: 800; padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.7rem;">
+                                ENGINE_READY</div>
+                        </div>
 
-                <div style="margin-bottom: 0.5rem; margin-top: 1rem;">
-                    <div class="metric-label" style="margin-bottom: 0.5rem;">SAR Insights (Structure-Activity)</div>
-                    <div id="res-sar-analysis"
-                        style="font-size: 0.75rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 6px; border: 1px solid #334155; max-height: 120px; overflow-y: auto;">
-                        <!-- SAR insights injected here -->
-                    </div>
-                </div>
+                        <div id="evolution-chart" style="height: 400px; margin-bottom: 1rem;"></div>
 
-                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                    <button id="send-to-wetlab-btn"
-                        style="flex: 1; padding: 0.75rem; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); border-radius: 8px; color: #60a5fa; cursor: pointer; transition: all 0.2s;">
-                        🧪 Send to Wet Lab
-                    </button>
-                    <button id="save-report-btn" class="glass-card"
-                        style="padding: 0.75rem; color: white; cursor: pointer;">
-                        💾 Save Report
-                    </button>
+                        <div id="results-panel"
+                            style="display: none; margin-top: 3rem; border-top: 1px solid #f1f5f9; padding-top: 2rem;">
+                            <h3
+                                style="color: #115e59; font-size: 1rem; font-weight: 800; margin-bottom: 1.5rem; text-transform: uppercase;">
+                                Modification Insights (SAR)</h3>
+                            <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mutation / Modification</th>
+                                            <th>Δ Affinity</th>
+                                            <th>Potency Impact</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sar-tbody"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="action-bar">
+                                <button onclick="downloadReport()" class="btn-launch"
+                                    style="background: white; color: #1e293b; border: 1.5px solid #e2e8f0; box-shadow: none;">
+                                    <i class="fas fa-file-pdf" style="color: #ef4444;"></i> EXPORT REPORT
+                                </button>
+                                <button onclick="sendToWetlab()" class="btn-launch"
+                                    style="background: #f0fdfa; color: #065f46; border: 1.5px solid #ccfbf1; box-shadow: none;">
+                                    <i class="fas fa-robot" style="color: #10b981;"></i> VALIDATE IN WETLAB
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </main>
     </div>
 
+    <!-- Floating Info Icon -->
+    <button id="info-trigger"
+        style="position: fixed; right: 25px; top: 100px; background: #115e59; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none;">
+        <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <!-- Info Overlay -->
+    <div id="info-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.98); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(15px); animation: fadeIn 0.3s ease; padding: 30px;">
+        <div
+            style="position: relative; max-width: 90%; max-height: 90vh; width: fit-content; background: #020617; padding: 8px; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 0 50px rgba(16, 185, 129, 0.15); transform: scale(0.9); animation: scaleUp 0.3s ease forwards; display: flex; flex-direction: column; align-items: center;">
+            <button id="info-close-top"
+                style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); z-index: 10; border: 2px solid #020617;">&times;</button>
+
+            <div
+                style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px 10px 0 10px;">
+                <img src="/static/images/Lead Optimization.png"
+                    style="max-width: 100%; max-height: 70vh; height: auto; width: auto; object-fit: contain; display: block; border-radius: 4px;">
+            </div>
+
+            <div style="padding: 1.5rem 0; width: 100%; display: flex; justify-content: center;">
+                <button id="info-minimize-btn"
+                    style="background: #115e59; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 10px 40px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <i class="fas fa-compress-alt"></i> MINIMIZE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
     <script>
-        const terminal = document.getElementById('terminal-output');
-        const overlay = document.getElementById('results-overlay');
+        let currentSocket = null;
+        let currentJobId = null;
+        let evolutionData = { x: [0], y: [8.10] };
 
-        function log(msg) {
-            terminal.innerHTML += `> ${msg}<br>`;
-            terminal.scrollTop = terminal.scrollHeight;
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar handled by main.js
+            const username = localStorage.getItem('user_fullname') || localStorage.getItem('full_name') || 'Researcher';
+            const userDisplay = document.getElementById('nav-username');
+            if (userDisplay) userDisplay.innerText = username;
 
-        document.getElementById('run-genai-btn').addEventListener('click', async () => {
-            const targetId = document.getElementById('opt-target').value;
-            const model = document.getElementById('opt-model').value;
-            const goal = document.getElementById('opt-goal').value;
-            const btn = document.getElementById('run-genai-btn');
+            initChart();
+            document.getElementById('optimize-btn').onclick = startOptimization;
 
-            if (!targetId) { log("Error: No Target ID provided."); return; }
+            // Info Overlay Logic
+            const trigger = document.getElementById('info-trigger');
+            const overlay = document.getElementById('info-overlay');
+            const closeTop = document.getElementById('info-close-top');
+            const minimizeBtn = document.getElementById('info-minimize-btn');
 
-            // Start Simulation visuals
-            btn.disabled = true;
-            btn.style.opacity = 0.5;
-            btn.innerHTML = 'Computing...'; // Spinner usually
-            document.getElementById('sim-status').innerText = 'RUNNING ' + model.toUpperCase() + '...';
-            document.getElementById('sim-status').style.color = '#facc15';
-
-            overlay.style.display = 'none';
-            terminal.innerHTML = `> Starting ${model.toUpperCase()} Optimization Task...<br>`;
-
-            log("Initializing AI engine context...");
-            await new Promise(r => setTimeout(r, 800));
-            log("Configuring multi-objective rewards for " + goal + "...");
-            await new Promise(r => setTimeout(r, 1200));
-
-            // Mock API Call
-            try {
-                const res = await fetch(`http://127.0.0.1:8000/api/optimization/run?target_id=${targetId}&model=${model}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ goal: goal })
+            if (trigger) {
+                trigger.addEventListener('click', () => {
+                    overlay.style.display = 'flex';
                 });
-
-                // Actually my backend signature: run_optimization(target_id: str, constraints: dict, ...) and uses Query for target_id if not in body.
-                // Ah, backend: `run_optimization(target_id: str, constraints: dict, ...)` usually implies Body if pydantic model, or Query if simple types. 
-                // Let's assume query for target_id and body for constraints based on FastAPI default.
-
-                // NOTE: The backend optimization.py: `async def run_optimization(target_id: str, constraints: dict, ...)` 
-                // In FastAPI, simple types are Query params by default, dict/Pydantic models are Body.
-                // So target_id in URL is correct.
-
-                if (res.ok) {
-                    const job = await res.json();
-                    const jobId = job.id || job._id;
-
-                    if (!jobId) {
-                        log("Critical Error: Job ID not received.");
-                        btn.disabled = false;
-                        btn.style.opacity = 1;
-                        btn.innerHTML = '<span>✨</span> GENERATE & OPTIMIZE';
-                        return;
-                    }
-
-                    log(`Job ${jobId.substring(0, 8)} dispatched to cluster.`);
-                    log("Awaiting results...");
-
-                    let progress = 0;
-                    const progressInterval = setInterval(() => {
-                        progress += 5;
-                        if (Math.random() > 0.7) log(`Epoch ${Math.floor(progress / 5)}: Loss ${Math.random().toFixed(4)}`);
-                    }, 500);
-
-                    // Poll Backend for Completion
-                    const pollInterval = setInterval(async () => {
-                        try {
-                            const pollRes = await fetch('http://127.0.0.1:8000/api/optimization/' + jobId);
-                            const updatedJob = await pollRes.json();
-
-                            if (updatedJob.status === "Completed") {
-                                clearInterval(pollInterval);
-                                clearInterval(progressInterval);
-                                finishSimulation(updatedJob.results);
-                            }
-                        } catch (e) {
-                            console.error("Polling error", e);
-                        }
-                    }, 1000);
-
-                } else {
-                    log("Error connecting to GPU cluster.");
-                    btn.disabled = false;
-                    btn.style.opacity = 1;
-                    btn.innerHTML = '<span>✨</span> GENERATE & OPTIMIZE';
-                }
-
-            } catch (e) {
-                console.error(e);
-                log("Network Error.");
-            }
-        });
-
-        function finishSimulation(results) {
-            // Restore UI
-            const btn = document.getElementById('run-genai-btn');
-            btn.disabled = false;
-            btn.style.opacity = 1;
-            btn.innerHTML = '<span>✨</span> GENERATE & OPTIMIZE';
-
-            document.getElementById('sim-status').innerText = 'OPTIMIZATION COMPLETE';
-            document.getElementById('sim-status').style.color = '#4ade80';
-
-            log("Optimization converged.");
-            log("Generative Model Used: " + results.model_used);
-            log("Generating artifacts...");
-
-            // Show result overlay with Dynamic Data
-            document.getElementById('res-affinity').innerText = results.optimized_affinity + " kcal/mol";
-            document.getElementById('res-improvement').innerText = "+" + results.improvement;
-
-            const badges = results.modifications.map(m => `<span class="mutation-badge">${m}</span>`).join('');
-            document.getElementById('res-mutations').innerHTML = badges;
-
-            if (results.sar_analysis && results.sar_analysis.length > 0) {
-                const sarHtml = results.sar_analysis.map(s => {
-                    const color = s.affinity_change > 0 ? '#4ade80' : '#f43f5e';
-                    const sign = s.affinity_change > 0 ? '+' : '';
-                    return `<div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.25rem;">
-                                <span>${s.mutation}</span>
-                                <span style="color: ${color}">${sign}${s.affinity_change} kcal/mol</span>
-                            </div>`;
-                }).join('');
-                document.getElementById('res-sar-analysis').innerHTML = sarHtml;
-            } else {
-                document.getElementById('res-sar-analysis').innerHTML = '<span style="color: var(--text-muted)">Stable structural results. No high-impact SAR rules detected in this sequence.</span>';
             }
 
-            overlay.style.display = 'block';
-
-            // Update Charts with Dynamic Data
-            updateCharts(results);
-        }
-
-        document.getElementById('close-results').addEventListener('click', () => {
-            overlay.style.display = 'none';
-        });
-
-        document.getElementById('send-to-wetlab-btn').addEventListener('click', () => {
-            // Get current state
-            const targetId = document.getElementById('opt-target').value;
-            const affinity = document.getElementById('res-affinity').innerText;
-            const newSmiles = "Optimized-Molecule-X"; // In real app, this comes from results object
-
-            // Redirect to wet_lab with params
-            const url = `wet_lab.html?target_id=${encodeURIComponent(targetId)}&desc=Validation of AI Optimized Candidate (Affinity: ${affinity})&auto_init=true`;
-            window.location.href = url;
-        });
-
-        document.getElementById('save-report-btn').addEventListener('click', async () => {
-            const targetId = document.getElementById('opt-target').value;
-            const affinity = document.getElementById('res-affinity').innerText;
-            const improvements = document.getElementById('res-improvement').innerText;
-            const mutations = document.getElementById('res-mutations').innerText;
-
-            // Re-fetch current results for consistent data (or use a shared state variable)
-            // For now, we'll use the data displayed:
-            const summary = {
-                "optimized_affinity": affinity,
-                "improvement": improvements,
-                "mutations_suggested": mutations.replace(/\n/g, ", ")
+            const hideOverlay = () => {
+                overlay.style.display = 'none';
             };
 
-            const molecules = [
-                { "smiles": "Optimized_Candidate", "affinity": parseFloat(affinity) }
-            ];
+            if (closeTop) closeTop.addEventListener('click', hideOverlay);
+            if (minimizeBtn) minimizeBtn.addEventListener('click', hideOverlay);
 
-            try {
-                const btn = document.getElementById('save-report-btn');
-                btn.innerHTML = "⏳ GENERATING...";
-
-                const res = await fetch('http://127.0.0.1:8000/api/reports/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        target_name: targetId,
-                        summary_data: summary,
-                        molecules: molecules
-                    })
-                });
-
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Report_${targetId}_${Date.now()}.pdf`;
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    btn.innerHTML = "💾 SAVE REPORT";
-                } else {
-                    alert("Report generation failed on server.");
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Connection error while generating report.");
-            }
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) hideOverlay();
+            });
         });
 
-        // Initialize Plotly Charts
-        function updateCharts(data = null) {
-            // Default mock data if null
-            let y_binding = [10, 15, 12, 45, 90, 95];
-            let y_stab = [-6.5, -7.2, -8.1, -9.8];
+        async function startOptimization() {
+            const targetId = document.getElementById('target-id').value;
+            const strategy = document.getElementById('strategy-select').value;
+            const btn = document.getElementById('optimize-btn');
+            const log = document.getElementById('research-log');
 
-            if (data) {
-                // Generate energetic curve based on result
-                y_binding = [10, 20, 15, 50, 85, 98].map(v => v + (Math.random() * 10 - 5));
-                y_stab = [data.original_affinity, data.original_affinity - 0.5, data.optimized_affinity + 1.0, data.optimized_affinity];
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> INITIALIZING...';
+            log.innerHTML = '<div>[SYSTEM] Initializing Generative engine...</div>';
+
+            try {
+                const res = await fetch(`/api/optimization/run?target_id=${targetId}&model=${strategy}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ constraints: { "min_potency": 9.0 } })
+                });
+
+                if (!res.ok) throw new Error("Optimization task failed to start.");
+                const job = await res.json();
+                currentJobId = job.id || job._id;
+                connectWS(currentJobId);
+
+            } catch (e) {
+                log.innerHTML += `<div style="color: #ef4444;">[ERROR] ${e.message}</div>`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bolt"></i> RUN OPTIMIZATION';
             }
+        }
 
-            // Binding Time Chart
-            Plotly.newPlot('binding-chart', [{
-                x: [0, 1, 2, 3, 4, 5],
-                y: y_binding,
-                type: 'scatter',
-                mode: 'lines+markers',
-                line: { shape: 'spline', color: '#0ea5e9' },
-                fill: 'tozeroy'
-            }], {
-                margin: { t: 10, l: 30, r: 10, b: 30 },
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                xaxis: { color: '#94a3b8' },
-                yaxis: { color: '#94a3b8' }
-            });
+        function connectWS(jobId) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/${jobId}`;
+            const log = document.getElementById('research-log');
 
-            // Stability Chart
-            Plotly.newPlot('stability-chart', [{
-                x: ['Original', 'Iter 1', 'Iter 2', 'Optimized'],
-                y: y_stab,
-                type: 'bar',
-                marker: { color: ['#334155', '#334155', '#334155', '#4ade80'] }
-            }], {
-                margin: { t: 10, l: 30, r: 10, b: 30 },
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                xaxis: { color: '#94a3b8' },
-                yaxis: { color: '#94a3b8' }
+            if (currentSocket) currentSocket.close();
+            currentSocket = new WebSocket(wsUrl);
+
+            currentSocket.onmessage = (event) => {
+                const msg = event.data;
+                log.innerHTML += `<div>${msg}</div>`;
+                log.scrollTop = log.scrollHeight;
+
+                if (msg.includes('Score')) {
+                    const match = msg.match(/Score ([\d\.-]+)/);
+                    if (match) updateRealtimeStats(parseFloat(match[1]));
+                }
+
+                if (msg.includes('Complete') || msg.includes('Converged')) {
+                    finishJob(jobId);
+                }
+            };
+        }
+
+        function updateRealtimeStats(score) {
+            const absScore = Math.abs(score);
+            document.getElementById('affinity-score').innerText = absScore.toFixed(2);
+
+            evolutionData.x.push(evolutionData.x.length);
+            evolutionData.y.push(absScore);
+
+            Plotly.update('evolution-chart', {
+                x: [evolutionData.x],
+                y: [evolutionData.y]
             });
         }
 
-        // Initial empty charts
-        updateCharts();
+        async function finishJob(jobId) {
+            const btn = document.getElementById('optimize-btn');
+            const resultsPanel = document.getElementById('results-panel');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> OPTIMIZATION COMPLETE';
+            btn.style.background = '#10b981';
 
+            try {
+                const res = await fetch(`/api/optimization/${jobId}`);
+                const job = await res.json();
+                const results = job.results;
+
+                if (results) {
+                    document.getElementById('affinity-score').innerText = Math.abs(results.optimized_affinity).toFixed(2);
+                    document.getElementById('improvement-tag').innerText = results.improvement;
+
+                    resultsPanel.style.display = 'block';
+                    const sarTbody = document.getElementById('sar-tbody');
+                    sarTbody.innerHTML = '';
+                    results.sar_analysis.forEach(item => {
+                        const row = `
+                            <tr>
+                                <td style="font-weight: 600;">${item.mutation}</td>
+                                <td style="font-weight: 700; color: #115e59;">${item.affinity_change > 0 ? '+' : ''}${item.affinity_change}</td>
+                                <td><span class="impact-${item.impact.toLowerCase()}">${item.impact}</span></td>
+                            </tr>
+                        `;
+                        sarTbody.innerHTML += row;
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to fetch results:", e);
+            }
+        }
+
+        async function downloadReport() {
+            if (!currentJobId) return;
+            const res = await fetch(`/api/optimization/${currentJobId}`);
+            const job = await res.json();
+
+            const reqBody = {
+                target_name: job.target_id,
+                summary_data: { "Strategy": job.results.model_used, "Improvement": job.results.improvement },
+                molecules: [{ "smiles": job.results.optimized_smiles, "affinity": job.results.optimized_affinity }]
+            };
+
+            const response = await fetch('/api/reports/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reqBody)
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Lead_Optimization_Report_${job.target_id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                alert("Failed to generate report.");
+            }
+        }
+
+        async function sendToWetlab() {
+            if (!currentJobId) return;
+            const res = await fetch(`/api/optimization/${currentJobId}`);
+            const job = await res.json();
+
+            const expRes = await fetch('/api/experiments/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: `Optimization Validation - ${job.target_id}`,
+                    experiment_type: "Potency_Validation (SPR)",
+                    target_id: job.target_id,
+                    parameters: { "optimized_smiles": job.results.optimized_smiles, "source_job": currentJobId }
+                })
+            });
+
+            if (expRes.ok) {
+                alert(`SUCCESS: Lead molecules sent to Laboratory Database. Transitioning to Robotic Validation.`);
+                window.location.href = 'wet_lab.html';
+            } else {
+                alert("Failed to synchronize with laboratory database.");
+            }
+        }
+
+        function initChart() {
+            Plotly.newPlot('evolution-chart', [{
+                x: evolutionData.x,
+                y: evolutionData.y,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { shape: 'spline', color: '#10b981', width: 4 },
+                marker: { size: 10, color: '#115e59', line: { width: 2, color: 'white' } },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(16, 185, 129, 0.08)'
+            }], {
+                margin: { t: 20, l: 50, r: 20, b: 50 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                xaxis: { color: '#4d8b85', gridcolor: 'rgba(0,0,0,0.05)', title: { text: 'Generation Step', font: { weight: 700 } } },
+                yaxis: { color: '#4d8b85', gridcolor: 'rgba(0,0,0,0.05)', title: { text: 'pIC50 Potency', font: { weight: 700 } } },
+                font: { family: 'Inter', size: 12 }
+            }, { responsive: true, displayModeBar: false });
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>
-    <script src="../static/js/chatbot.js"></script>
 </body>
 
 </html>

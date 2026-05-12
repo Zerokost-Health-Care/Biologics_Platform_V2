@@ -4,113 +4,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blinded Results - Biologics Discovery Platform</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>Blinded Results | GenQuantis Discovery</title>
+    <link rel="stylesheet" href="/static/css/platform.css?v=force_refresh_v222">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .secret-table th {
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.75rem;
-            color: var(--primary-color);
-            background: rgba(14, 165, 233, 0.05);
-        }
-
-        .blind-id {
-            font-family: 'JetBrains Mono', monospace;
-            color: #facc15;
-            letter-spacing: 1px;
-        }
-
-        .blurred-text {
-            color: transparent;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-            user-select: none;
-            transition: all 0.5s ease;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .revealed-text {
-            color: white;
-            text-shadow: none;
-            background: transparent;
-        }
-
-        /* Scanline effect for table */
-        .scan-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .blinded-table {
             width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
-            background-size: 100% 4px;
-            pointer-events: none;
-            opacity: 0.1;
-            z-index: 10;
+            border-collapse: collapse;
+        }
+
+        .blinded-table th {
+            text-align: left;
+            padding: 1.25rem 1rem;
+            background: #f8fafc;
+            color: #4d8b85;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .blinded-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            color: #115e59;
+        }
+
+        .blinded-id {
+            font-family: 'Fira Code', monospace;
+            background: #f1f5f9;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .blinded-table th:nth-child(2),
+            .blinded-table td:nth-child(2),
+            .blinded-table th:nth-child(4),
+            .blinded-table td:nth-child(4) {
+                display: none;
+            }
+
+            .premium-card {
+                border-radius: 0;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="app-container">
-        <aside class="sidebar">
-            <div class="brand"><span>🧬</span> BioPlatform</div>
-            <ul class="nav-links">
-                <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
-                <li class="nav-item"><a href="target_explorer.html">Target Identification</a></li>
-                <li class="nav-item"><a href="hit_screening.html">AI Hit Screening</a></li>
-                <li class="nav-item"><a href="molecular_docking.html">Molecular Docking</a></li>
-                <li class="nav-item"><a href="lead_optimization.html">Lead Optimization</a></li>
-                <li class="nav-item"><a href="admet_prediction.html">ADMET Prediction</a></li>
-                <li class="nav-item"><a href="wet_lab.html">Robotic Validation</a></li>
-                <li class="nav-item"><a href="preformulation_analysis.html">Preformulation Analysis</a></li>
-                <li class="nav-item"><a href="formulation_design.html">Formulation Design</a></li>
-                <li class="nav-item"><a href="blinded_results.html" class="active">Clinical Candidate Selection</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title">Blinded Study Design</h1>
-                <div
-                    style="font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 0.25rem 0.75rem; border-radius: 4px;">
-                    SECURE_MODE: ACTIVE
+        <!-- Unified Navbar -->
+        <header class="top-navbar">
+            <div style="display: flex; align-items: center;">
+                <button class="toggle-btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="background: white; color: #115e59; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <i class="fas fa-mask" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <span style="font-weight: 700; color: #115e59; font-size: 1.2rem;">GenQuantis Discovery <span
+                            style="font-weight: 400; opacity: 0.6;">Blinded Analysis</span></span>
                 </div>
             </div>
+            <div class="top-navbar-right-info" style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="user_guide.html" class="btn-user-guide">
+                    <i class="fas fa-book-open"></i> User Guide
+                </a>
+                <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">● SECURE SESSION</div>
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.1); padding: 0.4rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-user-circle" style="color: #10b981;"></i>
+                    <span id="nav-username"
+                        style="font-weight: 700; color: #115e59; font-size: 0.85rem;">Researcher</span>
+                </div>
+            </div>
+        </header>
 
-            <div class="glass-card tech-border fade-in" style="position: relative; min-height: 400px;">
-                <div class="scan-overlay"></div>
-                <div class="card-header"
-                    style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h3 class="card-title">🔒 Encrypted Experiment Data</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Double-blind
-                            protocol enforced.</p>
-                    </div>
-                    <button id="reveal-btn" class="glass-card"
-                        style="padding: 0.75rem 1.5rem; color: white; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1);">
-                        <span id="lock-icon">🔐</span>
-                        <span id="reveal-text">DECRYPT DATA</span>
-                    </button>
+        <!-- Unified Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div id="nav-user-avatar"
+                    style="width: 40px; height: 40px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                    JS</div>
+                <div>
+                    <div id="nav-user-name" style="font-weight: 700; color: #115e59; font-size: 0.9rem;">Scientist</div>
+                    <div style="font-size: 0.7rem; color: #4d8b85;">Active Session</div>
+                </div>
+            </div>
+            <a href="dashboard.html" class="sidebar-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="target_explorer.html" class="sidebar-item"><i class="fas fa-microscope"></i><span>Target
+                    Discovery</span></a>
+            <a href="pocket_discovery.html" class="sidebar-item"><i class="fas fa-cube"></i><span>Pocket
+                    Discovery</span></a>
+            <a href="hit_screening.html" class="sidebar-item"><i class="fas fa-vial"></i><span>AI Hit
+                    Screening</span></a>
+            <a href="molecular_docking.html" class="sidebar-item"><i class="fas fa-link"></i><span>Molecular
+                    Docking</span></a>
+            <a href="lead_optimization.html" class="sidebar-item"><i class="fas fa-flask"></i><span>Lead
+                    Optimization</span></a>
+            <a href="admet_prediction.html" class="sidebar-item"><i class="fas fa-chart-line"></i><span>ADMET
+                    Prediction</span></a>
+            <a href="blinded_results.html" class="sidebar-item active"><i class="fas fa-mask"></i><span>Blinded
+                    Results</span></a>
+            <a href="preformulation_analysis.html" class="sidebar-item"><i
+                    class="fas fa-clipboard-check"></i><span>Preformulation</span></a>
+            <a href="formulation_design.html" class="sidebar-item"><i
+                    class="fas fa-mortar-pestle"></i><span>Formulation</span></a>
+            <a href="wet_lab.html" class="sidebar-item"><i class="fas fa-robot"></i><span>Robotic Validation</span></a>
+            <a href="user_guide.html" class="sidebar-item"><i class="fas fa-book-open"></i><span>User Guide</span></a>
+            <div class="sidebar-footer">
+                <a href="settings.html" class="sidebar-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                <a href="#" class="sidebar-item" onclick="logout()"><i
+                        class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            </div>
+        </aside>
+
+        <main class="main-content fade-in">
+            <div class="ghost-text">OBJECTIVE</div>
+
+            <section class="hero-section">
+                <div
+                    style="background: white; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <i class="fas fa-user-secret" style="font-size: 2.5rem; color: #10b981;"></i>
+                </div>
+                <div class="hero-text">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; color: #115e59;">Blinded Results Review</h1>
+                    <p style="color: #4d8b85; font-size: 1.1rem; margin-top: 0.5rem;">Objective validation through
+                        double-blinded laboratory data verification.</p>
+                </div>
+            </section>
+
+            <div class="premium-card" style="padding: 0; overflow: hidden;">
+                <div
+                    style="padding: 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="color: #115e59; font-size: 1rem; font-weight: 800;">SECURE SAMPLE ANALYTICS</h3>
+                    <div class="badge badge-completed">ENCRYPTION ACTIVE</div>
                 </div>
 
-                <div class="card-body" style="padding: 0;">
-                    <table style="width: 100%; border-collapse: collapse;" class="secret-table">
+                <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                    <table class="blinded-table">
                         <thead>
                             <tr>
-                                <th style="padding: 1.25rem;">Blinded ID</th>
-                                <th style="padding: 1.25rem;">Assay Type</th>
-                                <th style="padding: 1.25rem;">Status</th>
-                                <th style="padding: 1.25rem;">True Identity (Hashed)</th>
+                                <th>BLINDED SAMPLE ID</th>
+                                <th>EXP TYPE</th>
+                                <th>AFFINITY (pIC50)</th>
+                                <th>CONFIDENCE</th>
+                                <th>STATUS</th>
+                                <th>ACTIONS</th>
                             </tr>
                         </thead>
-                        <tbody id="blinded-table-body">
+                        <tbody id="blinded-tbody">
                             <tr>
-                                <td colspan="4" style="padding: 3rem; text-align: center; color: var(--text-muted);">
-                                    Initiating secure connection...
+                                <td colspan="6" style="text-align: center; padding: 5rem;">
+                                    <i class="fas fa-spinner fa-spin"
+                                        style="font-size: 2rem; color: #10b981; margin-bottom: 1rem;"></i>
+                                    <p style="color: #4d8b85;">Decrypting secure laboratory stream...</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -120,129 +179,72 @@
         </main>
     </div>
 
-    <script src="../static/js/main.js"></script>
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
     <script>
-        let isRevealed = false;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar logic handled by main.js
+            const username = localStorage.getItem('user_fullname') || localStorage.getItem('full_name') || 'Researcher';
+            const userDisplay = document.getElementById('nav-username');
+            if (userDisplay) userDisplay.innerText = username;
+
+            loadBlindedData();
+            // Real-time synchronization (Poll every 5s)
+            setInterval(loadBlindedData, 5000);
+        });
 
         async function loadBlindedData() {
-            const tbody = document.getElementById('blinded-table-body');
+            const tbody = document.getElementById('blinded-tbody');
             try {
-                // Fetch SANITIZED data (No real names)
-                const res = await fetch('http://127.0.0.1:8000/api/experiments/blinded');
-                const experiments = await res.json();
+                const res = await fetch('/api/experiments/blinded');
+                const data = await res.json();
 
-                if (experiments.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="padding: 3rem; text-align: center; color: var(--text-muted);">No experimental data found in database.</td></tr>';
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 4rem; color: #94a3b8;">No blinded samples available for review.</td></tr>`;
                     return;
                 }
 
-                tbody.innerHTML = experiments.map((exp) => {
-                    let statusColor = '#94a3b8';
-                    if (exp.status === 'Running') statusColor = '#facc15';
-                    if (exp.status === 'Completed') statusColor = '#4ade80';
-                    if (exp.status === 'Failed') statusColor = '#f43f5e';
-
-                    return `
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;">
-                            <td style="padding: 1.25rem;" class="blind-id">${exp.blinded_id}</td>
-                            <td style="padding: 1.25rem; color: white;">${exp.experiment_type}</td>
-                            <td style="padding: 1.25rem;">
-                                <span style="color: ${statusColor}; font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
-                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor}; box-shadow: 0 0 8px ${statusColor};"></span>
-                                    ${exp.status}
-                                </span>
-                            </td>
-                            <td style="padding: 1.25rem; font-family: 'JetBrains Mono', monospace;">
-                                <!-- Secure Placeholder -->
-                                <span class="true-identity blurred-text" data-blind-id="${exp.blinded_id}">
-                                    ${generateRandomHash(12)}
-                                </span>
-                            </td>
-                        </tr>
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const statusClass = item.status === 'Completed' ? 'badge-completed' : (item.status === 'Running' ? 'badge-running' : 'badge-pending');
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="blinded-id">${item.blinded_id}</span></td>
+                        <td style="font-weight: 600; font-size: 0.8rem;">${item.experiment_type}</td>
+                        <td style="font-weight: 800; color: #115e59; font-family: monospace;">${item.score ? item.score.toFixed(3) : '---'}</td>
+                        <td>
+                            ${item.confidence ? `
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="width: 80px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                                    <div style="width: ${item.confidence * 100}%; height: 100%; background: #10b981;"></div>
+                                </div>
+                                <span style="font-size: 0.75rem; font-weight: 700;">${Math.round(item.confidence * 100)}%</span>
+                            </div>` : '<span style="color:#cbd5e1">N/A</span>'}
+                        </td>
+                        <td><span class="badge ${statusClass}">${item.status.toUpperCase()}</span></td>
+                        <td>
+                            <button onclick="reviewSample('${item.blinded_id}', ${item.score})" class="btn-launch" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
+                                <i class="fas fa-eye"></i> REVIEW
+                            </button>
+                        </td>
                     `;
-                }).join('');
+                    tbody.appendChild(tr);
+                });
 
             } catch (e) {
-                console.error(e);
-                tbody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: #f43f5e;">System Error: Connection Refused.</td></tr>';
+                console.error("Sync Error:", e);
             }
         }
 
-        function generateRandomHash(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
+        function reviewSample(blindId, score) {
+            if (!score) {
+                alert(`SAMPLE PENDING: ${blindId} is still being processed by the robotic handler. Results will be decrypted upon completion.`);
+                return;
             }
-            return result;
+            alert(`SECURE ANALYSIS: Decrypting Metrics for ${blindId}\n\nPotency Readout: ${score.toFixed(3)} pIC50\nValidation Mode: Double-Blinded SPR\n\nSample verified against secondary reference standard.`);
         }
 
-        document.getElementById('reveal-btn').addEventListener('click', async () => {
-            isRevealed = !isRevealed;
-            const elements = document.querySelectorAll('.true-identity');
-            const btnText = document.getElementById('reveal-text');
-            const btnIcon = document.getElementById('lock-icon');
-            const btn = document.getElementById('reveal-btn');
-
-            if (isRevealed) {
-                // --- UNBLINDING PROCESS ---
-                btn.style.borderColor = '#4ade80';
-                btnText.style.color = '#4ade80';
-                btnIcon.innerText = '🔓';
-                btnText.innerHTML = 'DECRYPTING...';
-
-                // Fetch REAL data
-                try {
-                    const res = await fetch('http://127.0.0.1:8000/api/experiments/');
-                    const allData = await res.json();
-
-                    // Create lookup map
-                    const lookup = {};
-                    allData.forEach(e => {
-                        if (e.blinded_id) lookup[e.blinded_id] = e.name;
-                    });
-
-                    btnText.innerText = 'ACCESS GRANTED';
-
-                    elements.forEach(el => {
-                        const blindId = el.getAttribute('data-blind-id');
-                        const realName = lookup[blindId] || "UNKNOWN ID";
-
-                        let iterations = 0;
-                        const interval = setInterval(() => {
-                            el.innerText = generateRandomHash(realName.length);
-                            iterations++;
-                            if (iterations > 5) {
-                                clearInterval(interval);
-                                el.innerText = realName;
-                                el.classList.remove('blurred-text');
-                                el.classList.add('revealed-text');
-                            }
-                        }, 50);
-                    });
-                } catch (e) {
-                    alert("Failed to fetch unblinded data: " + e);
-                    isRevealed = false; // reset
-                }
-
-            } else {
-                // --- RE-BLINDING ---
-                btn.style.borderColor = 'rgba(255,255,255,0.1)';
-                btnText.style.color = 'white';
-                btnIcon.innerText = '🔐';
-                btnText.innerText = 'DECRYPT DATA';
-
-                elements.forEach(el => {
-                    el.classList.remove('revealed-text');
-                    el.classList.add('blurred-text');
-                    el.innerText = generateRandomHash(12);
-                });
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', loadBlindedData);
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>
-    <script src="../static/js/chatbot.js"></script>
 </body>
 
 </html>

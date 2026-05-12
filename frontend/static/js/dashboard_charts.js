@@ -1,13 +1,17 @@
 // Dashboard Visualizations - Enhanced for Senior Lead Research View
+// Version 1.2: Added CSV Export and Real-time Target Tracking
 
 document.addEventListener('DOMContentLoaded', () => {
     initRealTimeChart();
     startActivityFeed();
     startStatsPolling();
     initPipelineChart();
+    initTargetTable();
+    setupExportButton();
 });
 
 let pipelinePlot = null;
+let allTargets = []; // Store targets for filtering and export
 
 // 1. Plotly Real-Time Molecular Throughput
 function initRealTimeChart() {
@@ -85,19 +89,26 @@ function initPipelineChart() {
 function startStatsPolling() {
     const updateStats = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/monitoring/stats');
+            const res = await fetch('/api/monitoring/stats');
             if (res.ok) {
                 const data = await res.json();
                 
                 // Top Metrics
-                document.getElementById('sys-health').innerText = data.system_health;
-                document.getElementById('daily-mols').innerText = data.daily_throughput.toLocaleString();
-                document.getElementById('screening-count').innerText = data.active_ai_jobs;
-                document.getElementById('gpu-load').innerText = data.gpu_load;
+                if(document.getElementById('sys-health')) document.getElementById('sys-health').innerText = data.system_health;
+                if(document.getElementById('daily-mols')) document.getElementById('daily-mols').innerText = data.daily_throughput.toLocaleString();
+                if(document.getElementById('screening-count')) document.getElementById('screening-count').innerText = data.active_ai_jobs;
+                if(document.getElementById('gpu-load')) document.getElementById('gpu-load').innerText = data.gpu_load;
                 
+                // Real-time counter for targets if element exists
+                if(document.getElementById('target-count')) document.getElementById('target-count').innerText = data.target_count.toLocaleString();
+                if(document.getElementById('experiment-count')) document.getElementById('experiment-count').innerText = data.experiment_count.toLocaleString();
+
                 // GPU Bar
-                const gpuVal = parseFloat(data.gpu_load);
-                document.getElementById('gpu-bar').style.width = gpuVal + '%';
+                const gpuBar = document.getElementById('gpu-bar');
+                if (gpuBar) {
+                    const gpuVal = parseFloat(data.gpu_load);
+                    gpuBar.style.width = gpuVal + '%';
+                }
 
                 // Update Pipeline Chart
                 if (data.pipeline && pipelinePlot) {
@@ -113,15 +124,12 @@ function startStatsPolling() {
                 // Render Top Candidates
                 if (data.top_candidates && Array.isArray(data.top_candidates)) {
                     renderTopCandidates(data.top_candidates);
-                } else {
-                    renderTopCandidates([]);
                 }
 
                 const statusEl = document.getElementById('api-status');
                 if (statusEl) {
-                    statusEl.innerText = "CLUSTER: " + data.cluster_status;
-                    statusEl.style.borderColor = data.cluster_status === "Operational" ? "#4ade80" : "#fbbf24";
-                    statusEl.style.color = data.cluster_status === "Operational" ? "#4ade80" : "#fbbf24";
+                    statusEl.innerText = "● SYSTEM ONLINE";
+                    statusEl.className = "badge badge-success";
                 }
             }
         } catch (e) {
@@ -138,25 +146,79 @@ function renderTopCandidates(candidates) {
     if (!container) return;
 
     if (candidates.length === 0) {
-        container.innerHTML = '<div class="text-xs text-slate-500 text-center mt-10">No lead candidates validated yet.</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 1rem; color: #64748b; font-size: 0.8rem;">No leads validated yet.</div>';
         return;
     }
 
     container.innerHTML = candidates.map(c => `
-        <div class="flex items-center justify-between p-3 border-b border-slate-800/50 hover:bg-slate-800/30 transition">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
             <div>
-                <div class="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">${c.target}</div>
-                <div class="text-xs font-mono text-slate-200">${c.smiles.substring(0, 20)}...</div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">${c.target}</div>
+                <div style="font-size: 0.7rem; color: #64748b;">${c.model}</div>
             </div>
-            <div class="text-right">
-                <div class="text-sm font-bold text-emerald-400">${c.affinity} <span class="text-[8px]">pIC50</span></div>
-                <div class="text-[10px] text-slate-500">${c.model}</div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">${c.affinity} IC50</div>
+                <div style="font-size: 0.65rem; color: #10b981;">Improvement: ${c.improvement}</div>
             </div>
         </div>
     `).join('');
 }
 
-// 4. Activity Logs (Filtered)
+// 4. Target Table & Search
+async function initTargetTable() {
+    const tableBody = document.getElementById('dashboard-table-body');
+    const searchInput = document.getElementById('target-search');
+    if (!tableBody) return;
+
+    const fetchTargets = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/targets/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                allTargets = await res.json();
+                renderTable(allTargets);
+            }
+        } catch (e) {
+            console.error("Table Fetch Error:", e);
+        }
+    };
+
+    const renderTable = (targets) => {
+        if (targets.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No targets found.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = targets.map(t => `
+            <tr>
+                <td><span style="font-family: monospace; font-weight: 600;">${(t._id || t.id || '').substring(0, 8)}</span></td>
+                <td><div style="font-weight: 600;">${t.name}</div><div style="font-size: 0.7rem; color: #64748b;">${t.uniprot_id || 'N/A'}</div></td>
+                <td><span class="badge badge-info">${t.type || 'In-silico'}</span></td>
+                <td>${t.properties?.confidence || '0.92'}</td>
+                <td>${new Date(t.created_at || Date.now()).toLocaleDateString()}</td>
+                <td><span class="badge badge-success">Analyzed</span></td>
+            </tr>
+        `).join('');
+    };
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allTargets.filter(t => 
+                t.name.toLowerCase().includes(term) || 
+                (t.uniprot_id && t.uniprot_id.toLowerCase().includes(term))
+            );
+            renderTable(filtered);
+        });
+    }
+
+    fetchTargets();
+    setInterval(fetchTargets, 15000); // Refresh table every 15s
+}
+
+// 5. Activity Feed
 async function startActivityFeed() {
     const feedContainer = document.getElementById('activity-feed');
     if (!feedContainer) return;
@@ -164,31 +226,62 @@ async function startActivityFeed() {
     const updateFeed = async () => {
         try {
             const token = localStorage.getItem('token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const res = await fetch('http://127.0.0.1:8000/api/screening/', { headers });
+            const res = await fetch('/api/activity/recent', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             
             if (!res.ok) return;
             const data = await res.json();
             
-            if (!Array.isArray(data)) return;
-
-            const activities = data.slice(0, 10).map(d => ({
-                job: (d._id || '').substring(0, 6),
-                status: d.status || 'PENDING',
-                target: d.target_id || 'UNKNOWN'
-            }));
-
-            feedContainer.innerHTML = activities.map(a => `
-                <div class="font-mono mb-2 flex justify-between">
-                    <span class="text-slate-500">[${new Date().toLocaleTimeString()}]</span>
-                    <span class="text-blue-300">JOB_${a.job}</span>
-                    <span class="text-slate-200">/ ${a.target}</span>
-                    <span class="${a.status === 'Completed' ? 'text-emerald-400' : 'text-yellow-400'}">${a.status.toUpperCase()}</span>
+            feedContainer.innerHTML = data.slice(0, 8).map(a => `
+                <div style="margin-bottom: 1rem; border-left: 2px solid var(--primary); padding-left: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #1e293b;">${a.action}</span>
+                        <span style="font-size: 0.65rem; color: #64748b;">${new Date(a.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: #64748b; font-family: monospace;">
+                        ${JSON.stringify(a.details).substring(0, 50)}...
+                    </div>
                 </div>
             `).join('');
         } catch (e) { }
     };
 
     updateFeed();
-    setInterval(updateFeed, 8000);
+    setInterval(updateFeed, 10000);
+}
+
+// 6. CSV Export Functionality
+function setupExportButton() {
+    const exportBtn = document.getElementById('export-dashboard-csv');
+    if (!exportBtn) return;
+
+    exportBtn.addEventListener('click', () => {
+        if (allTargets.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+
+        const headers = ["Target ID", "Name", "UniProt ID", "Type", "Created At", "Status"];
+        const rows = allTargets.map(t => [
+            t._id || t.id,
+            t.name,
+            t.uniprot_id || 'N/A',
+            t.type || 'In-silico',
+            t.created_at,
+            "Analyzed"
+        ]);
+
+        let csvContent = "data:text/csv;charset=utf-8," 
+            + headers.join(",") + "\n"
+            + rows.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `genquantis_targets_export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
 }
