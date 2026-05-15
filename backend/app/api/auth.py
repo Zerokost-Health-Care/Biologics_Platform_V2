@@ -8,7 +8,12 @@ import hmac
 import hashlib
 import base64
 import time
-from datetime import datetime
+import random
+import resend
+from datetime import datetime, timedelta
+from app.config import settings
+
+resend.api_key = settings.RESEND_API_KEY
 
 router = APIRouter()
 print("DEBUG: [auth.py] APIRouter initialized and routes defined")
@@ -42,6 +47,10 @@ class Token(BaseModel):
     user_id: str
     role: str
     full_name: Optional[str] = None
+
+class OTPVerify(BaseModel):
+    email: EmailStr
+    otp: str
 
 def create_token(user_id: str, role: str):
     payload = {
@@ -84,14 +93,40 @@ async def register(user: UserCreate):
     if user.email == "admin@genesysquantis.com":
         is_admin = True
 
+    otp = str(random.randint(100000, 999999))
+    expiry = datetime.now() + timedelta(minutes=5)
+
     new_user = User(
         email=user.email, 
         hashed_password=hashed_fake, 
         full_name=user.full_name,
-        is_superuser=is_admin
+        is_superuser=is_admin,
+        is_verified=False,
+        otp=otp,
+        otp_expiry=expiry
     )
     await new_user.insert()
     
+    # Send OTP via Resend
+    try:
+        resend.Emails.send({
+            "from": settings.FROM_EMAIL,
+            "to": user.email,
+            "subject": "GenQuantis Verification Code",
+            "html": f"""
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #115e59;">
+                    <h2>Welcome to GenQuantis!</h2>
+                    <p>Please use the following OTP to verify your account:</p>
+                    <div style="font-size: 2rem; font-weight: bold; padding: 10px; background: #f0fdfa; border-radius: 8px; text-align: center; color: #10b981;">
+                        {otp}
+                    </div>
+                    <p>This code will expire in <strong>5 minutes</strong>.</p>
+                </div>
+            """
+        })
+    except Exception as e:
+        print(f"RESEND ERROR: {e}")
+
     # Log activity
     await UserActivity(
         user_id=str(new_user.id), 
@@ -108,11 +143,33 @@ async def register(user: UserCreate):
         is_superuser=new_user.is_superuser
     )
 
+@router.post("/verify-otp")
+async def verify_otp(data: OTPVerify):
+    user = await User.find_one(User.email == data.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.otp != data.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    
+    if datetime.now() > user.otp_expiry:
+        raise HTTPException(status_code=400, detail="OTP expired")
+    
+    user.is_verified = True
+    user.otp = None
+    user.otp_expiry = None
+    await user.save()
+    
+    return {"message": "Email verified successfully"}
+
 @router.post("/login", response_model=Token)
 async def login(user_in: UserLogin):
     user = await User.find_one(User.email == user_in.email)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    if not user.is_verified:
+        raise HTTPException(status_code=401, detail="Please verify your email first")
     
     # Verify fake hash
     if user.hashed_password != f"hashed_{user_in.password}":

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
 from app.models.admet import ADMETJob
 from app.utils.cheminformatics import calculate_molecular_properties
 from datetime import datetime
@@ -103,9 +103,12 @@ async def run_admet_prediction(job_id: str):
     job.completed_at = datetime.now()
     await job.save()
 
+from app.models.user import User
+from app.api.dependencies import get_current_user
+
 @router.post("/predict", response_model=ADMETJob)
-async def predict_admet(smiles: str, target_id: str = None):
-    job = ADMETJob(smiles=smiles, target_id=target_id, status="Pending")
+async def predict_admet(smiles: str, target_id: str = None, current_user: User = Depends(get_current_user)):
+    job = ADMETJob(smiles=smiles, target_id=target_id, status="Pending", created_by=current_user.email)
     await job.insert()
     
     await run_admet_prediction(str(job.id))
@@ -121,5 +124,5 @@ async def get_admet_job(job_id: str):
     return job
 
 @router.get("/", response_model=List[ADMETJob])
-async def list_admet_jobs():
-    return await ADMETJob.find_all().sort("-created_at").to_list()
+async def list_admet_jobs(current_user: User = Depends(get_current_user)):
+    return await ADMETJob.find(ADMETJob.created_by == current_user.email).sort("-created_at").to_list()

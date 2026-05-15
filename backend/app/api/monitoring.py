@@ -70,6 +70,15 @@ async def get_platform_stats(current_user: User = Depends(get_current_user)) -> 
     else:
         success_rate = 0.0 # Baseline for empty dashboard
     
+    # 📈 Dynamic Sequence Completion Rate Calculation
+    user_targets = await Target.find(Target.created_by == current_user.email).to_list()
+    total_sequences = sum(1 for t in user_targets if t.sequence)
+    if total_sequences > 0:
+        completed_seqs = sum(1 for t in user_targets if t.sequence and t.status in ["Discovered", "Screened", "Validated"])
+        completion_rate = round((completed_seqs / total_sequences) * 100, 2)
+    else:
+        completion_rate = 0.0
+
     return {
         "target_count": target_count,
         "active_ai_jobs": active_ai_jobs,
@@ -79,8 +88,8 @@ async def get_platform_stats(current_user: User = Depends(get_current_user)) -> 
         "pipeline": pipeline,
         "top_candidates": top_candidates,
         "system_health": success_rate, # Now dynamic
-        "completion_rate": 17.95,
-        "total_sequences": 21,
+        "completion_rate": completion_rate,
+        "total_sequences": total_sequences,
         "live_logs": [f"[{a.timestamp.strftime('%H:%M:%S')}] {a.action}: {a.user_email}" for a in await UserActivity.find_all().sort("-timestamp").limit(8).to_list()],
         "daily_throughput": 12400 + random.randint(0, 500) # Mols processed today
     }

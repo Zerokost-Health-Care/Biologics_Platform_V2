@@ -25,8 +25,8 @@ class TargetUpdate(BaseModel):
     properties: dict = None
 
 @router.post("/", response_model=Target)
-async def create_target(target: TargetCreate):
-    new_target = Target(**target.dict())
+async def create_target(target: TargetCreate, user: User = Depends(get_current_user)):
+    new_target = Target(**target.dict(), created_by=user.email)
     await new_target.insert()
     return new_target
 
@@ -81,7 +81,7 @@ async def delete_target(target_id: str):
     return {"message": "Target deleted successfully"}
 
 @router.post("/import_pdb/{pdb_id}", response_model=Target)
-async def import_pdb_target(pdb_id: str):
+async def import_pdb_target(pdb_id: str, user: User = Depends(get_current_user)):
     """
     Fetches metadata from RCSB PDB and creates a new Target.
     """
@@ -106,13 +106,14 @@ async def import_pdb_target(pdb_id: str):
         sequence=f"PDB:{metadata['pdb_id']}", # Placeholder for actual seq
         description=f"Imported from PDB: {metadata['pdb_id']} | Method: {metadata['experiment_method']}",
         properties=metadata,
-        pdb_ids=[metadata['pdb_id']]
+        pdb_ids=[metadata['pdb_id']],
+        created_by=user.email
     )
     await new_target.insert()
     return new_target
 
 @router.post("/discover/{uniprot_id}", response_model=Target)
-async def discover_target(uniprot_id: str):
+async def discover_target(uniprot_id: str, user: User = Depends(get_current_user)):
     """
     Implements the full Target Discovery Workflow:
     1. Auto-detect if input is a PDB ID (4-char alphanumeric) → import from PDB
@@ -145,7 +146,8 @@ async def discover_target(uniprot_id: str):
             description=f"Imported from PDB: {metadata['pdb_id']} | Method: {metadata['experiment_method']}",
             properties=metadata,
             pdb_ids=[metadata['pdb_id']],
-            status="Discovered"
+            status="Discovered",
+            created_by=user.email
         )
         await new_target.insert()
         return new_target
@@ -170,7 +172,8 @@ async def discover_target(uniprot_id: str):
         sequence=uniprot_data.get("sequence", ""),
         description=f"Gene: {uniprot_data.get('gene_name')} | Organism: {uniprot_data.get('organism')}",
         pdb_ids=pdb_ids,
-        properties=uniprot_data
+        properties=uniprot_data,
+        created_by=user.email
     )
 
     # 3. Handle AlphaFold Fallback if no PDBs exist
@@ -201,6 +204,9 @@ async def discover_target(uniprot_id: str):
     target.status = "Discovered"
 
     if existing:
+        # Don't overwrite created_by if it already exists
+        if not target.created_by:
+            target.created_by = user.email
         await target.save()
     else:
         await target.insert()

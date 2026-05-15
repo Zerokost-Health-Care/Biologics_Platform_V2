@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - GenQuantis Discovery</title>
-    <link rel="stylesheet" href="/static/css/platform.css">
+    <link rel="stylesheet" href="/static/css/platform.css?v=final_sidebar_v1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -284,8 +284,12 @@
                     <h2 class="form-title">Create Account</h2>
                     <p class="form-subtitle">Join the next generation of therapeutic research.</p>
                 </div>
+                <div id="otpHeader" style="display: none;">
+                    <h2 class="form-title">Verify Email</h2>
+                    <p class="form-subtitle">Enter the 6-digit code sent to your inbox.</p>
+                </div>
 
-                <div class="toggle-nav">
+                <div class="toggle-nav" id="authToggles">
                     <button id="showLogin" class="toggle-btn active">LOG IN</button>
                     <button id="showSignup" class="toggle-btn">SIGN UP</button>
                 </div>
@@ -322,6 +326,18 @@
                     <div id="signupSuccessMsg" style="color: var(--primary); margin-bottom: 1rem; font-size: 0.8rem; display: none; font-weight: 600;">Account created! Redirecting...</div>
                     <button type="submit" class="btn-submit">INITIALIZE ACCOUNT</button>
                 </form>
+
+                <!-- OTP Form (Hidden) -->
+                <form id="otpForm" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Verification Code</label>
+                        <input type="text" id="otpCode" class="form-input" placeholder="123456" maxlength="6" pattern="\d{6}" required style="text-align: center; font-size: 2rem; letter-spacing: 0.5rem;">
+                    </div>
+                    <div id="otpErrorMsg" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.8rem; display: none; font-weight: 600;"></div>
+                    <div id="otpSuccessMsg" style="color: var(--primary); margin-bottom: 1rem; font-size: 0.8rem; display: none; font-weight: 600;">Verified! Redirecting...</div>
+                    <button type="submit" class="btn-submit">VERIFY & SIGN IN</button>
+                    <button type="button" id="backToLogin" class="toggle-btn" style="width: 100%; margin-top: 1rem;">Back to Login</button>
+                </form>
             </div>
         </div>
     </div>
@@ -339,14 +355,24 @@
                 const signupHeader = document.getElementById('signupHeader');
 
                 // Toggle Logic
+                const otpForm = document.getElementById('otpForm');
+                const authToggles = document.getElementById('authToggles');
+                const otpHeader = document.getElementById('otpHeader');
+                let pendingEmail = '';
+
                 showLoginBtn.addEventListener('click', () => {
                     loginForm.style.display = 'block';
                     signupForm.style.display = 'none';
+                    otpForm.style.display = 'none';
                     loginHeader.style.display = 'block';
                     signupHeader.style.display = 'none';
+                    otpHeader.style.display = 'none';
+                    authToggles.style.display = 'flex';
                     showLoginBtn.classList.add('active');
                     showSignupBtn.classList.remove('active');
                 });
+
+                document.getElementById('backToLogin').addEventListener('click', () => showLoginBtn.click());
 
                 showSignupBtn.addEventListener('click', () => {
                     loginForm.style.display = 'none';
@@ -373,6 +399,18 @@
                         });
 
                         const data = await res.json();
+                        
+                        if (res.status === 401 && data.detail.includes("verify")) {
+                            // Needs verification
+                            pendingEmail = email;
+                            loginForm.style.display = 'none';
+                            otpForm.style.display = 'block';
+                            loginHeader.style.display = 'none';
+                            otpHeader.style.display = 'block';
+                            authToggles.style.display = 'none';
+                            return;
+                        }
+
                         if (!res.ok) throw new Error(data.detail || 'Authentication failed');
 
                         localStorage.setItem('token', data.access_token);
@@ -409,26 +447,49 @@
                         const data = await res.json();
                         if (!res.ok) throw new Error(data.detail || 'Registration failed');
 
-                        // Auto login after signup
-                        const loginRes = await fetch(`${API_URL}/login`, {
+                        pendingEmail = email;
+                        signupForm.style.display = 'none';
+                        otpForm.style.display = 'block';
+                        signupHeader.style.display = 'none';
+                        otpHeader.style.display = 'block';
+                        authToggles.style.display = 'none';
+
+                    } catch (err) {
+                        errorMsg.textContent = err.message;
+                        errorMsg.style.display = 'block';
+                    }
+                });
+
+                // OTP Logic
+                otpForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const otp = document.getElementById('otpCode').value;
+                    const errorMsg = document.getElementById('otpErrorMsg');
+                    const successMsg = document.getElementById('otpSuccessMsg');
+                    
+                    errorMsg.style.display = 'none';
+                    successMsg.style.display = 'none';
+
+                    try {
+                        const res = await fetch(`${API_URL}/verify-otp`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email, password })
+                            body: JSON.stringify({ email: pendingEmail, otp })
                         });
 
-                        const loginData = await loginRes.json();
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.detail || 'Verification failed');
 
-                        if (loginRes.ok) {
-                            successMsg.style.display = 'block';
-                            localStorage.setItem('token', loginData.access_token);
-                            setTimeout(() => {
-                                window.location.href = 'dashboard.html';
-                            }, 1000);
-                        } else {
-                            // If auto-login fails, switch to login view
-                            alert("Account created! Please log in.");
+                        successMsg.style.display = 'block';
+                        
+                        // Now login automatically or ask them to login
+                        setTimeout(() => {
                             showLoginBtn.click();
-                        }
+                            document.getElementById('email').value = pendingEmail;
+                            document.getElementById('loginErrorMsg').textContent = "Verification successful! Please log in.";
+                            document.getElementById('loginErrorMsg').style.color = "var(--primary)";
+                            document.getElementById('loginErrorMsg').style.display = "block";
+                        }, 1500);
 
                     } catch (err) {
                         errorMsg.textContent = err.message;

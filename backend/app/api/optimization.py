@@ -1,5 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from app.models.optimization import OptimizationJob
+from app.models.user import User
+from app.api.dependencies import get_current_user
 from typing import List
 import asyncio
 import random
@@ -245,8 +247,8 @@ async def run_generative_optimization(job_id: str, model_name: str = "ga"):
     await job.save()
 
 @router.post("/run", response_model=OptimizationJob)
-async def run_optimization(target_id: str, constraints: dict, background_tasks: BackgroundTasks, model: str = "ga"):
-    job = OptimizationJob(target_id=target_id, constraints=constraints, status="Running", results=None)
+async def run_optimization(target_id: str, constraints: dict, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), model: str = "ga"):
+    job = OptimizationJob(target_id=target_id, constraints=constraints, status="Running", results=None, created_by=current_user.email)
     await job.insert()
     
     # Dispatch GenAI Task
@@ -260,5 +262,5 @@ async def get_optimization_job(job_id: str):
     return job
 
 @router.get("/", response_model=List[OptimizationJob])
-async def get_optimizations():
-    return await OptimizationJob.find_all().sort("-created_at").to_list()
+async def get_optimizations(current_user: User = Depends(get_current_user)):
+    return await OptimizationJob.find(OptimizationJob.created_by == current_user.email).sort("-created_at").to_list()

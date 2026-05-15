@@ -98,13 +98,11 @@ img {
     width: 240px;
     background: var(--sidebar-bg) !important;
     display: flex !important;
-    flex-direction: column !important;
-    z-index: 10000 !important;
     transition: transform var(--transition), width var(--transition) !important;
-    overflow-y: auto !important;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-top: 1rem !important;
+    overflow: hidden !important;
+    padding-top: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 @media (max-width: 991px) {
@@ -150,11 +148,15 @@ img {
     width: 100% !important;
     display: flex !important;
     align-items: center !important;
-    padding: 0.7rem 1.5rem !important;
+    padding: 0 !important;
+    padding-left: 23px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
     color: var(--text-primary) !important;
     text-decoration: none !important;
     font-weight: 600 !important;
-    font-size: 0.85rem !important;
+    font-size: 0.8rem !important;
     transition: background 0.2s !important;
 }
 
@@ -172,17 +174,23 @@ img {
 
 .sidebar-item i {
     width: 24px !important;
-    font-size: 1.2rem !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    font-size: 18px !important;
     text-align: center !important;
     margin-right: 1.25rem !important;
+    transition: none !important;
 }
 
 .sidebar-footer {
-    padding-bottom: 1rem;
-    padding-top: 1rem;
+    padding: 0 !important;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
-    margin-top: auto;
-    /* Pushes to bottom on desktop */
+    margin-top: auto !important;
+}
+
+.sidebar-footer .sidebar-item {
+    height: 38px !important;
+    min-height: 38px !important;
 }
 
 @media (max-width: 991px) {
@@ -309,6 +317,7 @@ img {
 /* Collapsed Sidebar Styles */
 .sidebar.collapsed {
     width: 70px !important;
+    padding-bottom: 0.25rem !important;
 }
 
 .sidebar.collapsed span {
@@ -316,13 +325,22 @@ img {
 }
 
 .sidebar.collapsed .sidebar-item {
-    justify-content: center !important;
-    padding: 0.85rem 0 !important;
+    justify-content: flex-start !important;
+    padding: 0 !important;
+    padding-left: 23px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+}
+
+.sidebar.collapsed .sidebar-footer .sidebar-item {
+    height: 38px !important;
+    min-height: 38px !important;
 }
 
 .sidebar.collapsed .sidebar-item i {
     margin-right: 0 !important;
-    font-size: 1.2rem !important;
+    font-size: 18px !important;
 }
 
 .main-content.sidebar-collapsed {
