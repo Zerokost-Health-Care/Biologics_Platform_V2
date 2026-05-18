@@ -123,12 +123,20 @@ async def start_db():
             hashed_password=f"hashed_admin", # Matches auth.py logic
             full_name="System Admin",
             is_superuser=True,
-            is_active=True
+            is_active=True,
+            is_verified=True
         ).insert()
-    elif not existing.is_superuser:
-        print(f"Promoting {email} to admin")
-        existing.is_superuser = True
-        await existing.save()
+    else:
+        updated = False
+        if not existing.is_verified:
+            existing.is_verified = True
+            updated = True
+        if not existing.is_superuser:
+            existing.is_superuser = True
+            updated = True
+        if updated:
+            print(f"Ensuring default admin is verified and superuser: {email}")
+            await existing.save()
     
     # Automatically open browser if not disabled
     # if os.environ.get("AUTO_OPEN_BROWSER", "true").lower() == "true":
@@ -140,13 +148,13 @@ async def start_db():
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """Serve the login page by default."""
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="login.html")
 
 @app.get("/{page}.html", response_class=HTMLResponse)
 async def serve_html_page(request: Request, page: str):
     """Serve other HTML templates by name."""
     try:
-        return templates.TemplateResponse(f"{page}.html", {"request": request})
+        return templates.TemplateResponse(request=request, name=f"{page}.html")
     except Exception:
         return HTMLResponse(content="Page not found", status_code=404)
 

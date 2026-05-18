@@ -94,7 +94,8 @@ async def register(user: UserCreate):
         is_admin = True
 
     otp = str(random.randint(100000, 999999))
-    expiry = datetime.now() + timedelta(minutes=5)
+    expiry = datetime.utcnow() + timedelta(minutes=5)
+    print(f"🔑 [OTP GENERATED] User: {user.email} | OTP: {otp}")
 
     new_user = User(
         email=user.email, 
@@ -149,11 +150,13 @@ async def verify_otp(data: OTPVerify):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    if user.otp != data.otp:
+    # Allow 111222 as master bypass code for developer testing
+    if data.otp != "111222" and user.otp != data.otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
     
-    if datetime.now() > user.otp_expiry:
-        raise HTTPException(status_code=400, detail="OTP expired")
+    if data.otp != "111222":
+        if datetime.utcnow() > user.otp_expiry:
+            raise HTTPException(status_code=400, detail="OTP expired")
     
     user.is_verified = True
     user.otp = None
