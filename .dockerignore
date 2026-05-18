@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+.github
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Database files and logs
+backend/chroma_db/
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+*.log
+*.sqlite3
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
