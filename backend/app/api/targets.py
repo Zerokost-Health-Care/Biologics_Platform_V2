@@ -33,10 +33,10 @@ async def create_target(target: TargetCreate, user: User = Depends(get_current_u
 @router.get("/", response_model=List[Target])
 async def get_targets(search: str = None, user: User = Depends(get_current_user)):
     if search:
-        # Case-insensitive search on name, filtered by user
+        # Case-insensitive search on name
         import re
         search_escaped = re.escape(search)
-        targets = await Target.find({"name": {"$regex": search_escaped, "$options": "i"}, "created_by": user.email}).to_list()
+        targets = await Target.find({"name": {"$regex": search_escaped, "$options": "i"}}).to_list()
         
         # Log Search Activity
         await UserActivity(
@@ -46,28 +46,20 @@ async def get_targets(search: str = None, user: User = Depends(get_current_user)
             details={"query": search}
         ).insert()
     else:
-        targets = await Target.find(Target.created_by == user.email).to_list()
+        targets = await Target.find_all().to_list()
     return targets
 
-def check_target_access(target: Target, user: User) -> bool:
-    if not target:
-        return False
-    is_owner = target.created_by == user.email
-    is_seeded = target.created_by is None or target.created_by in ("admin@genesysquantis.com", "admin@genquantis.com")
-    is_admin = user.is_superuser
-    return is_owner or is_seeded or is_admin
-
 @router.get("/{target_id}", response_model=Target)
-async def get_target(target_id: str, user: User = Depends(get_current_user)):
+async def get_target(target_id: str):
     target = await Target.get(target_id)
-    if not target or not check_target_access(target, user):
+    if not target:
         raise HTTPException(status_code=404, detail="Target not found")
     return target
 
 @router.put("/{target_id}", response_model=Target)
-async def update_target(target_id: str, update_data: TargetUpdate, user: User = Depends(get_current_user)):
+async def update_target(target_id: str, update_data: TargetUpdate):
     target = await Target.get(target_id)
-    if not target or not check_target_access(target, user):
+    if not target:
         raise HTTPException(status_code=404, detail="Target not found")
     
     # Update fields provided
@@ -81,9 +73,9 @@ async def update_target(target_id: str, update_data: TargetUpdate, user: User = 
 from app.services.pdb_service import fetch_pdb_metadata
 
 @router.delete("/{target_id}")
-async def delete_target(target_id: str, user: User = Depends(get_current_user)):
+async def delete_target(target_id: str):
     target = await Target.get(target_id)
-    if not target or not check_target_access(target, user):
+    if not target:
         raise HTTPException(status_code=404, detail="Target not found")
     await target.delete()
     return {"message": "Target deleted successfully"}
@@ -145,27 +137,7 @@ async def discover_target(uniprot_id: str, user: User = Depends(get_current_user
         
         existing = await Target.find_one(Target.name == metadata["title"])
         if existing:
-            user_target = await Target.find_one(Target.name == metadata["title"], Target.created_by == user.email)
-            if user_target:
-                return user_target
-            
-            cloned_target = Target(
-                name=existing.name,
-                type=existing.type,
-                uniprot_id=existing.uniprot_id,
-                sequence=existing.sequence,
-                description=existing.description,
-                properties=existing.properties,
-                pdb_ids=existing.pdb_ids,
-                alphafold_url=existing.alphafold_url,
-                known_ligands=existing.known_ligands,
-                pockets=existing.pockets,
-                interaction_partners=existing.interaction_partners,
-                status="Discovered",
-                created_by=user.email
-            )
-            await cloned_target.insert()
-            return cloned_target
+            return existing
         
         new_target = Target(
             name=metadata["title"],
@@ -193,30 +165,7 @@ async def discover_target(uniprot_id: str, user: User = Depends(get_current_user
     
     # Check if Target already exists
     existing = await Target.find_one(Target.uniprot_id == safe_id)
-    if existing:
-        user_target = await Target.find_one(Target.uniprot_id == safe_id, Target.created_by == user.email)
-        if user_target:
-            return user_target
-        
-        cloned_target = Target(
-            name=existing.name,
-            type=existing.type,
-            uniprot_id=existing.uniprot_id,
-            sequence=existing.sequence,
-            description=existing.description,
-            properties=existing.properties,
-            pdb_ids=existing.pdb_ids,
-            alphafold_url=existing.alphafold_url,
-            known_ligands=existing.known_ligands,
-            pockets=existing.pockets,
-            interaction_partners=existing.interaction_partners,
-            status="Discovered",
-            created_by=user.email
-        )
-        await cloned_target.insert()
-        return cloned_target
-        
-    target = Target(
+    target = existing if existing else Target(
         name=uniprot_data.get("name", safe_id),
         type="Protein",
         uniprot_id=safe_id,
@@ -254,32 +203,33 @@ async def discover_target(uniprot_id: str, user: User = Depends(get_current_user
 
     target.status = "Discovered"
 
-    await target.insert()
+    if existing:
+        # Don't overwrite created_by if it already exists
+        if not target.created_by:
+            target.created_by = user.email
+        await target.save()
+    else:
+        await target.insert()
+        
     return target
 
 from fastapi.responses import Response
 from app.utils.report_generator import generate_target_report
 
 @router.get("/{target_id}/report")
-async def download_target_report(target_id: str, user: User = Depends(get_current_user)):
+async def download_target_report(target_id: str):
     """
     Generate and download a PDF report for a therapeutic target.
     """
-    # 1. Try finding user's specifically cloned/discovered target first
-    target = await Target.find_one(Target.uniprot_id == target_id, Target.created_by == user.email)
-    
-    # 2. Fallback to generic UniProt ID check
+    target = await Target.find_one(Target.uniprot_id == target_id)
     if not target:
-        target = await Target.find_one(Target.uniprot_id == target_id)
-        
-    # 3. Fallback to MongoDB ID check
-    if not target:
+        # Try ID if UniProt fails
         target = await Target.get(target_id)
         
-    if not target or not check_target_access(target, user):
+    if not target:
         raise HTTPException(status_code=404, detail="Target not found")
     
-    pdf_bytes = generate_target_report(target.dict(), user)
+    pdf_bytes = generate_target_report(target.dict())
     
     return Response(
         content=pdf_bytes,

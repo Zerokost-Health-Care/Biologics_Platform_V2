@@ -4,8 +4,6 @@ from app.models.preformulation import PreformulationReport
 from app.utils.drug_development import calculate_preformulation_properties
 from app.utils.report_generator import generate_preformulation_pdf
 from pydantic import BaseModel
-from app.models.user import User
-from app.api.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -39,12 +37,12 @@ async def get_report(compound_id: str):
     return report
 
 @router.get("/report/{compound_id}/pdf")
-async def get_report_pdf(compound_id: str, user: User = Depends(get_current_user)):
+async def get_report_pdf(compound_id: str):
     report = await PreformulationReport.find_one(PreformulationReport.compound_id == compound_id)
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
-    pdf_content = generate_preformulation_pdf(report.dict(), user)
+    pdf_content = generate_preformulation_pdf(report.dict())
     
     return Response(
         content=pdf_content,

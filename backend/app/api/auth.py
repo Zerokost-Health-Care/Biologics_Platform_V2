@@ -149,12 +149,10 @@ async def verify_otp(data: OTPVerify):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Accept either the generated OTP or the static backup OTP 111222
-    if data.otp != "111222" and user.otp != data.otp:
+    if user.otp != data.otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
     
-    # Expiry only applies to the dynamic generated OTP, not the static backup OTP 111222
-    if data.otp != "111222" and user.otp_expiry and datetime.now() > user.otp_expiry:
+    if datetime.now() > user.otp_expiry:
         raise HTTPException(status_code=400, detail="OTP expired")
     
     user.is_verified = True

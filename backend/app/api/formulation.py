@@ -5,8 +5,6 @@ from app.models.preformulation import PreformulationReport
 from app.utils.drug_development import design_formulation_logic
 from app.utils.report_generator import generate_formulation_pdf
 from pydantic import BaseModel
-from app.models.user import User
-from app.api.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -42,7 +40,7 @@ async def get_design(compound_id: str):
     return design
 
 @router.get("/design/{compound_id}/pdf")
-async def get_design_pdf(compound_id: str, user: User = Depends(get_current_user)):
+async def get_design_pdf(compound_id: str):
     design = await FormulationDesign.find_one(FormulationDesign.compound_id == compound_id)
     if not design:
         raise HTTPException(status_code=404, detail="Design not found")
@@ -51,7 +49,7 @@ async def get_design_pdf(compound_id: str, user: User = Depends(get_current_user
     if not pre_report:
          raise HTTPException(status_code=404, detail="Associated preformulation report not found")
 
-    pdf_content = generate_formulation_pdf(design.dict(), pre_report.dict(), user)
+    pdf_content = generate_formulation_pdf(design.dict(), pre_report.dict())
     
     return Response(
         content=pdf_content,

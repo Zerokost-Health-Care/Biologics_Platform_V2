@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+print("DEBUG: MAIN.PY STARTED")
 
 # ── Initialize Logging FIRST (before anything else) ─────────────────
 from app.logging_config import setup_logging
@@ -18,6 +19,7 @@ app = FastAPI(
     title="GenQuantis Discovery API",
     description="Backend API for AI-assisted biologics discovery, screening, and validation.",
     version="0.1.0"
+    print("DEBUG: FASTAPI APP CREATED")
 )
 
 @app.post("/sync-profile")
@@ -34,9 +36,10 @@ async def sync_profile(request: Request):
         "is_active": True,
         "is_superuser": True
     }
+print("DEBUG: IMPORTING ROUTERS")
 
 from app.api import auth, targets, experiments, screening, optimization, docking, admet, robot, admin, chatbot, reports, monitoring, preformulation, formulation, pockets, logs
-
+print("DEBUG: ROUTERS IMPORTED")
 print("DEBUG: [main.py] Including Auth Router...")
 # Include Routers early
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
@@ -93,17 +96,21 @@ def open_browser():
     """Opens the browser to the landing page after a short delay."""
     time.sleep(2)
     webbrowser.open("http://127.0.0.1:8000")
+print("DEBUG: IMPORTING DB ENGINE")
 from app.db.engine import init_db
-
+print("DEBUG: DB ENGINE IMPORTED")
 @app.on_event("startup")
 async def start_db():
+    print("DEBUG: STARTUP EVENT RUNNING")
     system_logger.info("🚀 GenQuantis Platform Starting Up...", extra={
         "extra_data": {"event": "APP_STARTUP", "version": "0.1.0"}
     })
+    print("DEBUG: BEFORE INIT_DB")
     await init_db()
     system_logger.info("✅ Database Connected", extra={
         "extra_data": {"event": "DB_CONNECTED"}
     })
+    print("DEBUG: AFTER INIT_DB")
     
     # Init Admin
     from app.models.user import User
@@ -145,7 +152,7 @@ async def serve_html_page(request: Request, page: str):
 
 @app.get("/api/status")
 def read_root_api():
-    return {"message": "GenQuantis Discovery Platform API is running", "version": "0.1.0"}
+    return {"message": "Biologics Discovery Platform API is running", "version": "0.1.0"}
 
 @app.post("/api/auth/profile")
 async def update_profile_direct():

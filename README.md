@@ -109,84 +109,39 @@ The `app/utils/file_parsers.py` utility normalizes various scientific data forma
 
 ## 🛠️ Installation & Setup
 
-You can deploy and run the Biologics Discovery Platform in two ways: **using Docker (highly recommended for production/quick-start)** or **running locally in a Python environment**.
+### Prerequisites
+*   Python 3.9+
+*   MongoDB (Local instance or Atlas URI)
 
----
-
-### 🐳 Option A: Running with Docker (Recommended)
-
-Docker handles all scientific dependencies (like RDKit, scikit-learn, etc.), installs the physics-based docking engine (**AutoDock Vina**), and automatically pre-trains the core AI models during the build phase so the container is ready instantly.
-
-#### Prerequisites
-*   [Docker](https://www.docker.com/products/docker-desktop/) installed on your machine.
-*   [Docker Compose](https://docs.docker.com/compose/install/) (if running with database bundled).
-
-#### 1. Quick Start: Local Stack (FastAPI App + MongoDB Container)
-Spin up the complete platform—including a local persistent MongoDB instance—with a single command:
-```bash
-docker-compose up --build
-```
-Once initialized, the platform will be available at:
-*   **Web Application**: [http://localhost:8000](http://localhost:8000) (Serves the interactive dashboard & login page)
-*   **Interactive API Docs (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-#### 2. Standalone Deployment (Using external MongoDB / Cloud Atlas)
-If you want to run the application container separately and connect it to your existing cloud MongoDB cluster (configured in `backend/.env`):
-1. **Build the Docker Image**:
-   ```bash
-   docker build -t biologics-platform .
-   ```
-2. **Run the Standalone Container**:
-   Pass your `.env` configuration directly into the container:
-   ```bash
-   docker run -d -p 8000:8000 --env-file backend/.env --name biologics-platform biologics-platform
-   ```
-
----
-
-### 💻 Option B: Manual Local Setup (Development)
-
-#### Prerequisites
-*   **Python 3.10+** (Recommended)
-*   **MongoDB** (Ensure local instance is running, or obtain a cloud MongoDB Atlas URI)
-
-#### 1. Setup Backend & Virtual Environment
-Navigate to the `backend` directory, create a virtual environment, and install dependencies:
+### 1. Backend Setup
+Navigate to the backend directory and install the scientific dependencies:
 ```bash
 cd backend
-python -m venv venv
-
-# Activate Virtual Environment:
-# On Windows:
-venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
-
-# Install requirements
 pip install -r requirements.txt
 ```
 
-#### 2. Train the Core AI Models
-Before running the platform, compile the AI Regressors (XGBoost) and Classifiers locally. This will generate your pickle serialized models (`binding_affinity_model.pkl` & `bbbp_model.pkl`):
+### 2. Train the Core AI Model
+Before running the server, build the production XGBoost model locally using the provided script (this generates the `binding_affinity_model.pkl`):
 ```bash
-# Still inside backend directory
 python train_ai_model.py
-python app/ai_models/train_bbbp.py
 ```
 
-#### 3. Run the Application
-Start the FastAPI server. It is configured to serve both the backend APIs and the static frontend templates simultaneously:
+### 3. Start the API Server
+Launch the FastAPI instance on `localhost:8000`:
 ```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload
 ```
-Open your web browser and navigate to:
-*   **Platform UI**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-*   **API Documentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-*(Note: For Windows users, you can also double-click `run_platform.bat` to automate the local environment creation, model training, and server launch in one go!)*
+### 4. Run the Client
+Since the frontend operates purely on Vanilla HTML/JS/CSS, no build step is required! 
+Simply open `frontend/templates/dashboard.html` in your favorite modern web browser or serve it using a lightweight local server:
+```bash
+cd frontend
+python -m http.server 5500
+```
+Then navigate to `http://localhost:5500/templates/dashboard.html`.
 
 ---
-
 
 ## 🧪 Testing
 

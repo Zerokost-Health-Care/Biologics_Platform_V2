@@ -193,7 +193,7 @@
         </main>
     </div>
 
-    <script src="/static/js/main.js?v=pdf_auth_fix_v4"></script>
+    <script src="/static/js/main.js?v=force_refresh_v3"></script>
     <script>
         let currentCompoundId = "";
         document.addEventListener('DOMContentLoaded', () => {
@@ -252,11 +252,7 @@
 
         async function downloadReport() {
             if (!currentCompoundId) return;
-            // Use authenticated fetch to avoid 401 on protected endpoint
-            await window.downloadPdf(
-                `/api/formulation/design/${currentCompoundId}/pdf`,
-                `Formulation_${currentCompoundId}.pdf`
-            );
+            window.location.href = `/api/formulation/design/${currentCompoundId}/pdf`;
         }
 
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }

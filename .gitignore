@@ -19,3 +19,4 @@ backend/scratch/
 scratch/
 .idea/
 .vscode/
+backend/chroma_db/
