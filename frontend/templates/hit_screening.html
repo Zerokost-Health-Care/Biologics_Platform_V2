@@ -402,8 +402,28 @@
         });
     </script>
 
-    <script src="/static/js/main.js?v=force_refresh_v3"></script>
-    <script src="../static/js/screening.js?v=force_refresh_v2"></script>
+    <script src="/static/js/main.js?v=pdf_auth_fix_v4"></script>
+    <script>
+        // Inline fallback: ensures downloadPdf is always available regardless of main.js cache
+        if (typeof window.downloadPdf !== 'function') {
+            window.downloadPdf = async function(url, filename) {
+                const token = localStorage.getItem('token');
+                if (!token) { alert('Session expired. Please log in again.'); window.location.href = 'login.html'; return; }
+                try {
+                    const response = await fetch(url, { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } });
+                    if (response.status === 401) { alert('Session expired. Please log in again.'); localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                    if (!response.ok) throw new Error('Server error ' + response.status);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl; a.download = filename || 'report.pdf';
+                    document.body.appendChild(a); a.click(); a.remove();
+                    window.URL.revokeObjectURL(blobUrl);
+                } catch (e) { alert('Error downloading report: ' + e.message); }
+            };
+        }
+    </script>
+    <script src="../static/js/screening.js?v=pdf_auth_fix_v4"></script>
     <script>
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>

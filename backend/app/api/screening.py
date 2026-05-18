@@ -159,7 +159,7 @@ from fastapi.responses import Response
 from app.utils.report_generator import generate_screening_pdf
 
 @router.get("/{job_id}/report")
-async def download_screening_report(job_id: str):
+async def download_screening_report(job_id: str, user: User = Depends(get_current_user)):
     """
     Generate and download a PDF report for a screening job.
     """
@@ -167,7 +167,7 @@ async def download_screening_report(job_id: str):
     if not job or job.status != "Completed":
         raise HTTPException(status_code=404, detail="Job not found or not completed")
     
-    pdf_bytes = generate_screening_pdf(job.dict())
+    pdf_bytes = generate_screening_pdf(job.dict(), user)
     
     return Response(
         content=pdf_bytes,
