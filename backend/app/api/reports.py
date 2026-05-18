@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import os
 from app.services.report_engine import generate_pdf_report
+from app.models.user import User
+from app.api.auth import get_current_user
 
 router = APIRouter()
 
@@ -12,14 +14,14 @@ class ReportRequest(BaseModel):
     molecules: list
 
 @router.post("/generate")
-async def create_report(request: ReportRequest):
+async def create_report(request: ReportRequest, user: User = Depends(get_current_user)):
     try:
         # Validate data
         if not request.molecules:
             raise HTTPException(status_code=400, detail="Molecules list cannot be empty")
             
         # Generate the Report
-        file_path = generate_pdf_report(request.target_name, request.summary_data, request.molecules)
+        file_path = generate_pdf_report(request.target_name, request.summary_data, request.molecules, user)
         
         if os.path.exists(file_path):
             return FileResponse(

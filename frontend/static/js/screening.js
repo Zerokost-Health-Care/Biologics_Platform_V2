@@ -167,10 +167,10 @@ function displayResults(job) {
     document.getElementById('empty-results').style.display = 'none';
     document.getElementById('results-container').style.display = 'block';
     
-    // Handle PDF Download
+    // Handle PDF Download — use authenticated fetch to avoid 401
     const downloadBtn = document.getElementById('download-pdf-btn');
     downloadBtn.onclick = () => {
-        window.location.href = `/api/screening/${jobId}/report`;
+        window.downloadPdf(`/api/screening/${jobId}/report`, `Screening_Report_${jobId.substring(0, 8)}.pdf`);
     };
 
     const tbody = document.getElementById('hits-tbody');

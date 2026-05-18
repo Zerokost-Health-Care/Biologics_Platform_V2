@@ -317,28 +317,51 @@ async function downloadTargetReport(targetId) {
     }
 
     console.log(`[Global Report] Exporting target intelligence for: ${targetId}`);
+    await downloadPdf(`/api/targets/${targetId}/report`, `Target_Intelligence_${targetId}.pdf`);
+}
+
+/**
+ * Global authenticated PDF downloader.
+ * Always sends the Bearer token — fixes 401 errors caused by window.location.href.
+ * @param {string} url - The API endpoint returning a PDF
+ * @param {string} filename - The filename to save as
+ */
+window.downloadPdf = async function(url, filename) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Your session has expired. Please log in again.');
+        window.location.href = 'login.html';
+        return;
+    }
     try {
-        const response = await fetch(`/api/targets/${targetId}/report`, {
+        const response = await fetch(url, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error("Failed to generate report");
+        if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.handleUnauthorized();
+            return;
+        }
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || `Server error ${response.status}`);
+        }
 
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `Target_Intelligence_${targetId}.pdf`;
+        a.href = blobUrl;
+        a.download = filename || 'report.pdf';
         document.body.appendChild(a);
         a.click();
         a.remove();
-        window.URL.revokeObjectURL(url);
-
+        window.URL.revokeObjectURL(blobUrl);
+        console.log(`[PDF Download] Success: ${filename}`);
     } catch (e) {
-        console.error(e);
-        alert("Error exporting report: " + e.message);
+        console.error('[PDF Download Error]', e);
+        alert('Error downloading report: ' + e.message);
     }
-}
+};

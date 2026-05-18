@@ -145,7 +145,7 @@ async def serve_html_page(request: Request, page: str):
 
 @app.get("/api/status")
 def read_root_api():
-    return {"message": "Biologics Discovery Platform API is running", "version": "0.1.0"}
+    return {"message": "GenQuantis Discovery Platform API is running", "version": "0.1.0"}
 
 @app.post("/api/auth/profile")
 async def update_profile_direct():

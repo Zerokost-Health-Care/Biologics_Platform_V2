@@ -222,7 +222,7 @@
         </main>
     </div>
 
-    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script src="/static/js/main.js?v=pdf_auth_fix_v4"></script>
     <script>
         let currentData = null;
         document.addEventListener('DOMContentLoaded', () => {
@@ -271,7 +271,11 @@
 
         function downloadReport() {
             if (!currentData || !currentData.compound_id) return;
-            window.location.href = `/api/preformulation/report/${currentData.compound_id}/pdf`;
+            // Use authenticated fetch to avoid 401 on protected endpoint
+            window.downloadPdf(
+                `/api/preformulation/report/${currentData.compound_id}/pdf`,
+                `Preformulation_${currentData.compound_id}.pdf`
+            );
         }
 
         function proceedToFormulation() {
