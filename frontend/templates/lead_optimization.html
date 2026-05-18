@@ -381,7 +381,27 @@
         </div>
     </div>
 
-    <script src="/static/js/main.js?v=force_refresh_v3"></script>
+    <script src="/static/js/main.js?v=pdf_auth_fix_v4"></script>
+    <script>
+        // Inline fallback: ensures downloadPdf is always available regardless of main.js cache
+        if (typeof window.downloadPdf !== 'function') {
+            window.downloadPdf = async function(url, filename) {
+                const token = localStorage.getItem('token');
+                if (!token) { alert('Session expired. Please log in again.'); window.location.href = 'login.html'; return; }
+                try {
+                    const response = await fetch(url, { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } });
+                    if (response.status === 401) { alert('Session expired. Please log in again.'); localStorage.removeItem('token'); window.location.href = 'login.html'; return; }
+                    if (!response.ok) throw new Error('Server error ' + response.status);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl; a.download = filename || 'report.pdf';
+                    document.body.appendChild(a); a.click(); a.remove();
+                    window.URL.revokeObjectURL(blobUrl);
+                } catch (e) { alert('Error downloading report: ' + e.message); }
+            };
+        }
+    </script>
     <script>
         let currentSocket = null;
         let currentJobId = null;
@@ -522,34 +542,15 @@
         }
 
         async function downloadReport() {
-            if (!currentJobId) return;
-            const res = await fetch(`/api/optimization/${currentJobId}`);
-            const job = await res.json();
-
-            const reqBody = {
-                target_name: job.target_id,
-                summary_data: { "Strategy": job.results.model_used, "Improvement": job.results.improvement },
-                molecules: [{ "smiles": job.results.optimized_smiles, "affinity": job.results.optimized_affinity }]
-            };
-
-            const response = await fetch('/api/reports/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(reqBody)
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Lead_Optimization_Report_${job.target_id}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            } else {
-                alert("Failed to generate report.");
+            if (!currentJobId) {
+                alert('Please run an optimization first.');
+                return;
             }
+            // Use authenticated fetch via global helper to avoid 401
+            await window.downloadPdf(
+                `/api/optimization/${currentJobId}/report`,
+                `Lead_Optimization_Report_${currentJobId.substring(0, 8)}.pdf`
+            );
         }
 
         async function sendToWetlab() {

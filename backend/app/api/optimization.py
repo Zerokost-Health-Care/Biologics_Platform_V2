@@ -264,3 +264,25 @@ async def get_optimization_job(job_id: str):
 @router.get("/", response_model=List[OptimizationJob])
 async def get_optimizations(current_user: User = Depends(get_current_user)):
     return await OptimizationJob.find(OptimizationJob.created_by == current_user.email).sort("-created_at").to_list()
+
+from fastapi.responses import Response
+from app.utils.report_generator import generate_optimization_pdf
+
+@router.get("/{job_id}/report")
+async def download_optimization_report(job_id: str, user: User = Depends(get_current_user)):
+    """
+    Generate and download a PDF report for a lead optimization job.
+    """
+    job = await OptimizationJob.get(job_id)
+    if not job or job.status != "Completed":
+        raise HTTPException(status_code=404, detail="Job not found or not completed")
+
+    pdf_bytes = generate_optimization_pdf(job.dict(), user)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Lead_Optimization_Report_{job_id[:8]}.pdf"
+        }
+    )

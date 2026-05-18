@@ -19,8 +19,8 @@ app = FastAPI(
     title="GenQuantis Discovery API",
     description="Backend API for AI-assisted biologics discovery, screening, and validation.",
     version="0.1.0"
-    print("DEBUG: FASTAPI APP CREATED")
 )
+print("DEBUG: FASTAPI APP CREATED")
 
 @app.post("/sync-profile")
 async def sync_profile(request: Request):

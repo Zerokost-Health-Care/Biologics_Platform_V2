@@ -170,7 +170,10 @@ function displayResults(job) {
     // Handle PDF Download
     const downloadBtn = document.getElementById('download-pdf-btn');
     downloadBtn.onclick = () => {
-        window.location.href = `/api/screening/${jobId}/report`;
+        window.downloadPdf(
+            `/api/screening/${jobId}/report`,
+            `Screening_Report_${jobId.substring(0, 8)}.pdf`
+        );
     };
 
     const tbody = document.getElementById('hits-tbody');

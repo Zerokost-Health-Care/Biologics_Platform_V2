@@ -217,7 +217,7 @@ from fastapi.responses import Response
 from app.utils.report_generator import generate_target_report
 
 @router.get("/{target_id}/report")
-async def download_target_report(target_id: str):
+async def download_target_report(target_id: str, user: User = Depends(get_current_user)):
     """
     Generate and download a PDF report for a therapeutic target.
     """
@@ -229,7 +229,7 @@ async def download_target_report(target_id: str):
     if not target:
         raise HTTPException(status_code=404, detail="Target not found")
     
-    pdf_bytes = generate_target_report(target.dict())
+    pdf_bytes = generate_target_report(target.dict(), user)
     
     return Response(
         content=pdf_bytes,
