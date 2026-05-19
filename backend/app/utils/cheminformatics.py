@@ -11,7 +11,13 @@ except ImportError:
     # Heuristic fallback if RDKit Contrib is not in path
     # We found it in: backend\venv\Lib\site-packages\rdkit\Contrib\SA_Score\sascorer.py
     import site
-    for p in site.getsitepackages():
+    try:
+        site_packages = site.getsitepackages()
+    except AttributeError:
+        # Fallback for virtual environments where getsitepackages is not available
+        site_packages = [p for p in sys.path if "site-packages" in p]
+        
+    for p in site_packages:
         potential_path = os.path.join(p, "rdkit", "Contrib", "SA_Score")
         if os.path.exists(potential_path):
             if potential_path not in sys.path:

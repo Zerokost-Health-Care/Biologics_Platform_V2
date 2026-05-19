@@ -156,11 +156,29 @@ app.add_middleware(
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 app.add_middleware(RequestLoggingMiddleware)
 
-# Configure Paths
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+# Configure Paths robustly to handle various local and cloud deployment folder layouts
+possible_roots = [
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), # parallel to backend
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), # nested inside backend
+    os.path.dirname(os.path.abspath(__file__)) # next to main.py
+]
+
+FRONTEND_DIR = None
+for r in possible_roots:
+    potential_path = os.path.join(r, "frontend")
+    if os.path.exists(potential_path):
+        FRONTEND_DIR = potential_path
+        break
+
+if not FRONTEND_DIR:
+    FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend_fallback")
+
 TEMPLATES_DIR = os.path.join(FRONTEND_DIR, "templates")
 STATIC_DIR = os.path.join(FRONTEND_DIR, "static")
+
+# Ensure target directories exist to prevent StaticFiles from throwing a startup RuntimeError
+os.makedirs(TEMPLATES_DIR, exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -181,38 +199,52 @@ async def start_db():
     system_logger.info("🚀 GenQuantis Platform Starting Up...", extra={
         "extra_data": {"event": "APP_STARTUP", "version": "0.1.0"}
     })
-    print("DEBUG: BEFORE INIT_DB", flush=True)
-    await init_db()
-    system_logger.info("✅ Database Connected", extra={
-        "extra_data": {"event": "DB_CONNECTED"}
-    })
-    print("DEBUG: AFTER INIT_DB", flush=True)
     
-    # Init Admin
-    from app.models.user import User
-    email = "admin@genesysquantis.com"
-    existing = await User.find_one(User.email == email)
-    if not existing:
-        print(f"Creating default admin: {email}", flush=True)
-        await User(
-            email=email,
-            hashed_password=f"hashed_admin", # Matches auth.py logic
-            full_name="System Admin",
-            is_superuser=True,
-            is_active=True,
-            is_verified=True
-        ).insert()
-    else:
-        updated = False
-        if not existing.is_verified:
-            existing.is_verified = True
-            updated = True
-        if not existing.is_superuser:
-            existing.is_superuser = True
-            updated = True
-        if updated:
-            print(f"Ensuring default admin is verified and superuser: {email}", flush=True)
-            await existing.save()
+    db_connected = False
+    try:
+        print("DEBUG: BEFORE INIT_DB", flush=True)
+        await init_db()
+        system_logger.info("✅ Database Connected", extra={
+            "extra_data": {"event": "DB_CONNECTED"}
+        })
+        print("DEBUG: AFTER INIT_DB", flush=True)
+        db_connected = True
+    except Exception as e:
+        system_logger.critical(f"❌ Database Connection Failed: {e}", exc_info=True, extra={
+            "extra_data": {"event": "DB_CONNECTION_FAILED"}
+        })
+        print(f"DEBUG: DATABASE CONNECTION FAILED: {e}", flush=True)
+        
+    if db_connected:
+        try:
+            # Init Admin
+            from app.models.user import User
+            email = "admin@genesysquantis.com"
+            existing = await User.find_one(User.email == email)
+            if not existing:
+                print(f"Creating default admin: {email}", flush=True)
+                await User(
+                    email=email,
+                    hashed_password=f"hashed_admin", # Matches auth.py logic
+                    full_name="System Admin",
+                    is_superuser=True,
+                    is_active=True,
+                    is_verified=True
+                ).insert()
+            else:
+                updated = False
+                if not existing.is_verified:
+                    existing.is_verified = True
+                    updated = True
+                if not existing.is_superuser:
+                    existing.is_superuser = True
+                    updated = True
+                if updated:
+                    print(f"Ensuring default admin is verified and superuser: {email}", flush=True)
+                    await existing.save()
+        except Exception as e:
+            system_logger.error(f"❌ Default admin initialization failed: {e}", exc_info=True)
+            print(f"DEBUG: ADMIN INITIALIZATION FAILED: {e}", flush=True)
     
     # Automatically open browser if not disabled
     # if os.environ.get("AUTO_OPEN_BROWSER", "true").lower() == "true":
