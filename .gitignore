@@ -20,3 +20,13 @@ scratch/
 .idea/
 .vscode/
 backend/chroma_db/
+
+# PDF and Office Document files
+*.pdf
+*.docx
+*.doc
+*.xlsx
+*.xls
+*.pptx
+*.ppt
+

@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-print("DEBUG: MAIN.PY STARTED")
+print("DEBUG: MAIN.PY STARTED", flush=True)
 
 # ── Initialize Logging FIRST (before anything else) ─────────────────
 from app.logging_config import setup_logging
@@ -20,7 +20,7 @@ app = FastAPI(
     description="Backend API for AI-assisted biologics discovery, screening, and validation.",
     version="0.1.0"
 )
-print("DEBUG: FASTAPI APP CREATED")
+print("DEBUG: FASTAPI APP CREATED", flush=True)
 
 @app.post("/sync-profile")
 async def sync_profile(request: Request):
@@ -36,29 +36,105 @@ async def sync_profile(request: Request):
         "is_active": True,
         "is_superuser": True
     }
-print("DEBUG: IMPORTING ROUTERS")
+print("DEBUG: [main.py] Starting sequential router imports...", flush=True)
 
-from app.api import auth, targets, experiments, screening, optimization, docking, admet, robot, admin, chatbot, reports, monitoring, preformulation, formulation, pockets, logs
-print("DEBUG: ROUTERS IMPORTED")
-print("DEBUG: [main.py] Including Auth Router...")
-# Include Routers early
+# 1. Auth Router
+print("DEBUG: [main.py] Importing auth router...", flush=True)
+from app.api import auth
+print("DEBUG: [main.py] Including auth router...", flush=True)
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
-print("DEBUG: [main.py] Auth Router Included.")
+
+# 2. Targets Router
+print("DEBUG: [main.py] Importing targets router...", flush=True)
+from app.api import targets
+print("DEBUG: [main.py] Including targets router...", flush=True)
 app.include_router(targets.router, prefix="/api/targets", tags=["Targets"])
+
+# 3. Experiments Router
+print("DEBUG: [main.py] Importing experiments router...", flush=True)
+from app.api import experiments
+print("DEBUG: [main.py] Including experiments router...", flush=True)
 app.include_router(experiments.router, prefix="/api/experiments", tags=["Experiments"])
+
+# 4. Screening Router
+print("DEBUG: [main.py] Importing screening router...", flush=True)
+from app.api import screening
+print("DEBUG: [main.py] Including screening router...", flush=True)
 app.include_router(screening.router, prefix="/api/screening", tags=["Screening"])
+
+# 5. Optimization Router
+print("DEBUG: [main.py] Importing optimization router...", flush=True)
+from app.api import optimization
+print("DEBUG: [main.py] Including optimization router...", flush=True)
 app.include_router(optimization.router, prefix="/api/optimization", tags=["Optimization"])
+
+# 6. Docking Router
+print("DEBUG: [main.py] Importing docking router...", flush=True)
+from app.api import docking
+print("DEBUG: [main.py] Including docking router...", flush=True)
 app.include_router(docking.router, prefix="/api/docking", tags=["Docking"])
+
+# 7. ADMET Router
+print("DEBUG: [main.py] Importing admet router...", flush=True)
+from app.api import admet
+print("DEBUG: [main.py] Including admet router...", flush=True)
 app.include_router(admet.router, prefix="/api/admet", tags=["ADMET"])
+
+# 8. Robot Router
+print("DEBUG: [main.py] Importing robot router...", flush=True)
+from app.api import robot
+print("DEBUG: [main.py] Including robot router...", flush=True)
 app.include_router(robot.router, prefix="/api/robot", tags=["Robot"])
+
+# 9. Admin Router
+print("DEBUG: [main.py] Importing admin router...", flush=True)
+from app.api import admin
+print("DEBUG: [main.py] Including admin router...", flush=True)
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+
+# 10. Chatbot Router
+print("DEBUG: [main.py] Importing chatbot router...", flush=True)
+from app.api import chatbot
+print("DEBUG: [main.py] Including chatbot router...", flush=True)
 app.include_router(chatbot.router, prefix="/api/chat", tags=["Chatbot"])
+
+# 11. Reports Router
+print("DEBUG: [main.py] Importing reports router...", flush=True)
+from app.api import reports
+print("DEBUG: [main.py] Including reports router...", flush=True)
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+
+# 12. Monitoring Router
+print("DEBUG: [main.py] Importing monitoring router...", flush=True)
+from app.api import monitoring
+print("DEBUG: [main.py] Including monitoring router...", flush=True)
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
+
+# 13. Preformulation Router
+print("DEBUG: [main.py] Importing preformulation router...", flush=True)
+from app.api import preformulation
+print("DEBUG: [main.py] Including preformulation router...", flush=True)
 app.include_router(preformulation.router, prefix="/api/preformulation", tags=["Preformulation"])
+
+# 14. Formulation Router
+print("DEBUG: [main.py] Importing formulation router...", flush=True)
+from app.api import formulation
+print("DEBUG: [main.py] Including formulation router...", flush=True)
 app.include_router(formulation.router, prefix="/api/formulation", tags=["Formulation"])
+
+# 15. Pockets Router
+print("DEBUG: [main.py] Importing pockets router...", flush=True)
+from app.api import pockets
+print("DEBUG: [main.py] Including pockets router...", flush=True)
 app.include_router(pockets.router, prefix="/api/pockets", tags=["Pockets"])
+
+# 16. Logs Router
+print("DEBUG: [main.py] Importing logs router...", flush=True)
+from app.api import logs
+print("DEBUG: [main.py] Including logs router...", flush=True)
 app.include_router(logs.router, prefix="/api/devops", tags=["DevOps Logs"])
+
+print("DEBUG: [main.py] All routers imported and included successfully.", flush=True)
 
 # CORS Configuration
 origins = [
@@ -96,28 +172,28 @@ def open_browser():
     """Opens the browser to the landing page after a short delay."""
     time.sleep(2)
     webbrowser.open("http://127.0.0.1:8000")
-print("DEBUG: IMPORTING DB ENGINE")
+print("DEBUG: IMPORTING DB ENGINE", flush=True)
 from app.db.engine import init_db
-print("DEBUG: DB ENGINE IMPORTED")
+print("DEBUG: DB ENGINE IMPORTED", flush=True)
 @app.on_event("startup")
 async def start_db():
-    print("DEBUG: STARTUP EVENT RUNNING")
+    print("DEBUG: STARTUP EVENT RUNNING", flush=True)
     system_logger.info("🚀 GenQuantis Platform Starting Up...", extra={
         "extra_data": {"event": "APP_STARTUP", "version": "0.1.0"}
     })
-    print("DEBUG: BEFORE INIT_DB")
+    print("DEBUG: BEFORE INIT_DB", flush=True)
     await init_db()
     system_logger.info("✅ Database Connected", extra={
         "extra_data": {"event": "DB_CONNECTED"}
     })
-    print("DEBUG: AFTER INIT_DB")
+    print("DEBUG: AFTER INIT_DB", flush=True)
     
     # Init Admin
     from app.models.user import User
     email = "admin@genesysquantis.com"
     existing = await User.find_one(User.email == email)
     if not existing:
-        print(f"Creating default admin: {email}")
+        print(f"Creating default admin: {email}", flush=True)
         await User(
             email=email,
             hashed_password=f"hashed_admin", # Matches auth.py logic
@@ -135,7 +211,7 @@ async def start_db():
             existing.is_superuser = True
             updated = True
         if updated:
-            print(f"Ensuring default admin is verified and superuser: {email}")
+            print(f"Ensuring default admin is verified and superuser: {email}", flush=True)
             await existing.save()
     
     # Automatically open browser if not disabled
